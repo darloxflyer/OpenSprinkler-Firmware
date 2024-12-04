@@ -128,7 +128,11 @@ typedef unsigned long ulong;
 #if defined(ARDUINO)
 	#define MAX_EXT_BOARDS    8  // maximum number of 8-zone expanders (each 16-zone expander counts as 2)
 #else
-	#define MAX_EXT_BOARDS    24 // allow more zones for linux-based firmwares
+    #if defined(MANUAL_RELAY)
+        #define MAX_EXT_BOARDS     0 // When using manually-triggered relays, no expanders possible
+    #else
+        #define MAX_EXT_BOARDS    24 // allow more zones for linux-based firmwares
+    #endif
 #endif
 
 #define MAX_NUM_BOARDS    (1+MAX_EXT_BOARDS)  // maximum number of 8-zone boards including expanders
@@ -140,7 +144,7 @@ typedef unsigned long ulong;
 
 /** Default string option values */
 #define DEFAULT_PASSWORD          "a6d82bced638de3def1e9bbb4983225c"  // md5 of 'opendoor'
-#define DEFAULT_LOCATION          "42.36,-71.06"  // Boston,MA
+#define DEFAULT_LOCATION          "41.46,-81.94"  // Westlake, OH
 #define DEFAULT_JAVASCRIPT_URL    "https://ui.opensprinkler.com/js"
 #define DEFAULT_WEATHER_URL       "weather.opensprinkler.com"
 #define DEFAULT_IFTTT_URL         "maker.ifttt.com"
@@ -429,20 +433,37 @@ enum {
 #elif defined(OSPI) // for OSPi
 
 	#define OS_HW_VERSION    OSPI_HW_VERSION_BASE
-	#define PIN_SR_LATCH      22    // shift register latch pin
-	#define PIN_SR_DATA       27    // shift register data pin
-	#define PIN_SR_DATA_ALT   21    // shift register data pin (alternative, for RPi 1 rev. 1 boards)
-	#define PIN_SR_CLOCK       4    // shift register clock pin
-	#define PIN_SR_OE         17    // shift register output enable pin
-	#define PIN_SENSOR1       14
-	#define PIN_SENSOR2       23
-	#define PIN_RFTX          15    // RF transmitter pin
-	//#define PIN_BUTTON_1      23    // button 1
-	//#define PIN_BUTTON_2      24    // button 2
-	//#define PIN_BUTTON_3      25    // button 3
 
-	#define PIN_FREE_LIST       {5,6,7,8,9,10,11,12,13,16,18,19,20,21,23,24,25,26}  // free GPIO pins
-	#define ETHER_BUFFER_SIZE   16384
+	#if defined(MANUAL_RELAY) /** Pins for triggering manual relays instead of shift register-driven ones */
+
+		#define PIN_RELAY_1    17
+		#define PIN_RELAY_2    27
+		#define PIN_RELAY_3    22
+		#define PIN_RELAY_4    5
+		#define PIN_RELAY_5    6
+		#define PIN_RELAY_6    26
+		#define PIN_RELAY_7    16
+		#define PIN_RELAY_8    25
+
+	#else
+
+		#define PIN_SR_LATCH      13    // shift register latch pin
+		#define PIN_SR_DATA       19    // shift register data pin
+		#define PIN_SR_DATA_ALT   12    // shift register data pin (alternative, for RPi 1 rev. 1 boards)
+		#define PIN_SR_CLOCK       4    // shift register clock pin
+		#define PIN_SR_OE         20    // shift register output enable pin
+		//#define PIN_BUTTON_1      23    // button 1
+		//#define PIN_BUTTON_2      24    // button 2
+		//#define PIN_BUTTON_3      25    // button 3
+
+    #endif
+
+    #define PIN_RFTX          255    // RF transmitter pin, 255=disabled
+    #define PIN_SENSOR1       7
+    #define PIN_SENSOR2       1
+    #define PIN_FREE_LIST       {}  // free GPIO pins
+    #define ETHER_BUFFER_SIZE   16384
+
 
 #elif defined(OSBO) // for OSBo
 

@@ -12,3 +12,4 @@ build-1284/*
 !startOpenSprinkler.sh
 !updater.sh
 /.vs/OpenSprinkler-Firmware/FileContentIndex
+/.vs/OpenSprinkler-Firmware/v17

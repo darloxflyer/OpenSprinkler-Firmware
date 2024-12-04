@@ -94,7 +94,11 @@ extern ProgramData pd;
 	extern SdFat sd;
 #else
 	#if defined(OSPI)
-		unsigned char OpenSprinkler::pin_sr_data = PIN_SR_DATA;
+        #if defined(MANUAL_RELAY)
+            unsigned char OpenSprinkler::pin_relays[8] = {PIN_RELAY_1,PIN_RELAY_2,PIN_RELAY_3,PIN_RELAY_4,PIN_RELAY_5,PIN_RELAY_6,PIN_RELAY_7,PIN_RELAY_8};
+        #else
+  		    unsigned char OpenSprinkler::pin_sr_data = PIN_SR_DATA;
+        #endif
 	#endif
 	// todo future: LCD define for Linux-based systems
 #endif
@@ -935,26 +939,40 @@ void OpenSprinkler::begin() {
 
 #else
 
-	// shift register setup
-	pinMode(PIN_SR_OE, OUTPUT);
-	// pull shift register OE high to disable output
-	digitalWrite(PIN_SR_OE, HIGH);
-	pinMode(PIN_SR_LATCH, OUTPUT);
-	digitalWrite(PIN_SR_LATCH, HIGH);
+    #if defined(MANUAL_RELAY)
+        // manual relay setup
+        pinMode(PIN_RELAY_1, OUTPUT);
+		pinMode(PIN_RELAY_2, OUTPUT);
+		pinMode(PIN_RELAY_3, OUTPUT);
+		pinMode(PIN_RELAY_4, OUTPUT);
+		pinMode(PIN_RELAY_5, OUTPUT);
+		pinMode(PIN_RELAY_6, OUTPUT);
+		pinMode(PIN_RELAY_7, OUTPUT);
+		pinMode(PIN_RELAY_8, OUTPUT);
 
-	pinMode(PIN_SR_CLOCK, OUTPUT);
+    #else
+		// shift register setup
+		pinMode(PIN_SR_OE, OUTPUT);
+		// pull shift register OE high to disable output
+		digitalWrite(PIN_SR_OE, HIGH);
+		pinMode(PIN_SR_LATCH, OUTPUT);
+		digitalWrite(PIN_SR_LATCH, HIGH);
 
-	#if defined(OSPI)
-		pin_sr_data = PIN_SR_DATA;
-		// detect RPi revision
-		unsigned int rev = detect_rpi_rev();
-		if (rev==0x0002 || rev==0x0003)
-			pin_sr_data = PIN_SR_DATA_ALT;
-		// if this is revision 1, use PIN_SR_DATA_ALT
-		pinMode(pin_sr_data, OUTPUT);
-	#else
-		pinMode(PIN_SR_DATA, OUTPUT);
-	#endif
+		pinMode(PIN_SR_CLOCK, OUTPUT);
+
+		#if defined(OSPI)
+			pin_sr_data = PIN_SR_DATA;
+			// detect RPi revision
+			unsigned int rev = detect_rpi_rev();
+			if (rev==0x0002 || rev==0x0003)
+				pin_sr_data = PIN_SR_DATA_ALT;
+			// if this is revision 1, use PIN_SR_DATA_ALT
+			pinMode(pin_sr_data, OUTPUT);
+		#else
+			pinMode(PIN_SR_DATA, OUTPUT);
+		#endif
+
+    #endif
 
 #endif
 
@@ -968,12 +986,14 @@ void OpenSprinkler::begin() {
 	pinModeExt(PIN_SENSOR2, INPUT_PULLUP);
 
 #else
-	// pull shift register OE low to enable output
-	digitalWrite(PIN_SR_OE, LOW);
+    #if !defined(MANUAL_RELAY)
+		// pull shift register OE low to enable output
+		digitalWrite(PIN_SR_OE, LOW);
+    #endif
 	// Rain sensor port set up
 	pinMode(PIN_SENSOR1, INPUT_PULLUP);
 	#if defined(PIN_SENSOR2)
-	pinMode(PIN_SENSOR2, INPUT_PULLUP);
+	    pinMode(PIN_SENSOR2, INPUT_PULLUP);
 	#endif
 #endif
 
@@ -1302,7 +1322,9 @@ void OpenSprinkler::apply_all_station_bits() {
 	}
 
 #else
-	digitalWrite(PIN_SR_LATCH, LOW);
+    #if !defined(MANUAL_RELAY)
+	    digitalWrite(PIN_SR_LATCH, LOW);
+    #endif
 	unsigned char bid, s, sbits;
 
 	// Shift out all station bit values
@@ -1314,13 +1336,22 @@ void OpenSprinkler::apply_all_station_bits() {
 			sbits = 0;
 
 		for(s=0;s<8;s++) {
+	#if defined(MANUAL_RELAY)
+			digitalWrite(pin_relays[7-s], (sbits & ((unsigned char)1 << (7 - s))) ? HIGH : LOW);
+			DEBUG_PRINT("Shift contents: ");
+			DEBUG_PRINT(sbits);
+			DEBUG_PRINT(" -> ");
+			DEBUG_PRINT(s);
+			DEBUG_PRINTLN(" is set.");
+    #else
 			digitalWrite(PIN_SR_CLOCK, LOW);
-	#if defined(OSPI) // if OSPI, use dynamically assigned pin_sr_data
+		#if defined(OSPI) // if OSPI, use dynamically assigned pin_sr_data
 			digitalWrite(pin_sr_data, (sbits & ((unsigned char)1<<(7-s))) ? HIGH : LOW );
-	#else
+		#else
 			digitalWrite(PIN_SR_DATA, (sbits & ((unsigned char)1<<(7-s))) ? HIGH : LOW );
-	#endif
+		#endif
 			digitalWrite(PIN_SR_CLOCK, HIGH);
+    #endif
 		}
 	}
 
@@ -1339,7 +1370,9 @@ void OpenSprinkler::apply_all_station_bits() {
 		digitalWrite(PIN_SR_LATCH, HIGH);
 	}
 	#else
-	digitalWrite(PIN_SR_LATCH, HIGH);
+		#if !defined(MANUAL_RELAY)
+			digitalWrite(PIN_SR_LATCH, HIGH);
+		#endif
 	#endif
 #endif
 

@@ -221,7 +221,13 @@ public:
 #endif
 
 #if defined(OSPI)
-	static unsigned char pin_sr_data;  // RPi shift register data pin to handle RPi rev. 1
+    #if defined(MANUAL_RELAY)
+	    static unsigned char pin_relays[];
+    #else
+	    static unsigned char pin_sr_data;  // RPi shift register data pin to handle RPi rev. 1
+    #endif
+
+	
 #endif
 
 	static OSMqtt mqtt;
