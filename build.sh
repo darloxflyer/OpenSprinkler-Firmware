@@ -3,18 +3,39 @@ set -e
 
 DEBUG=""
 
-while getopts ":s:d" opt; do
+while getopts ":s:u:d" opt; do
   case $opt in
     s)
 	  SILENT=true
-	  command shift
+	  #command shift
       ;;
     d)
-      DEBUG="-DENABLE_DEBUG -DSERIAL_DEBUG"
-	  command shift
+          DEBUG="-DENABLE_DEBUG -DSERIAL_DEBUG"
+	  #command shift
+      ;;
+    u)
+          useopts+=("$OPTARG")
+          #command shift
       ;;
   esac
 done
+shift $((OPTIND -1))
+
+# Process include options to build additional modules
+USESSD1306=""
+USEMODULES=""
+for val in "${useopts[@]}"; do
+  if [ "$val" == "ssd1306" ]; then
+    USEMODULES+="-DUSE_SSD1306 "
+    USESSD1306="1"
+  elif [ "$val" == "manual_relay" ]; then
+    USEMODULES+="-DMANUAL_RELAY "
+  else
+    echo "Unknown use option specified: $val"
+    exit 0
+  fi
+done
+
 echo "Building OpenSprinkler..."
 
 #Git update submodules
@@ -47,6 +68,12 @@ else
 	echo "Installing required libraries..."
 	apt-get update
 	apt-get install -y libmosquitto-dev raspi-gpio libi2c-dev libssl-dev libgpiod-dev
+
+	if [ "$USESSD1306" == "1" ]; then
+	  echo "Installing SSD1306 Display Support"
+	  apt-get install -y libbcm2835-dev
+	fi
+
 	if ! command -v raspi-gpio &> /dev/null
 	then
 		echo "Command raspi-gpio is required and is not installed"
@@ -55,7 +82,6 @@ else
 
 	USEGPIO=""
 	GPIOLIB=""
-
 
 	if [ -h "/sys/class/gpio/gpiochip512" ]; then
 		echo "using libgpiod"
@@ -66,7 +92,7 @@ else
 	echo "Compiling ospi firmware..."
     ws=$(ls external/TinyWebsockets/tiny_websockets_lib/src/*.cpp)
     otf=$(ls external/OpenThings-Framework-Firmware-Library/*.cpp)
-	g++ -o OpenSprinkler -DOSPI $USEGPIO -DSMTP_OPENSSL $DEBUG -std=c++14 -include string.h main.cpp OpenSprinkler.cpp program.cpp opensprinkler_server.cpp utils.cpp weather.cpp gpio.cpp mqtt.cpp smtp.c -Iexternal/TinyWebsockets/tiny_websockets_lib/include $ws -Iexternal/OpenThings-Framework-Firmware-Library/ $otf -lpthread -lmosquitto -lssl -lcrypto $GPIOLIB
+	g++ -o OpenSprinkler -DOSPI $USEMODULES $USEGPIO -DSMTP_OPENSSL $DEBUG -std=c++14 -include string.h main.cpp OpenSprinkler.cpp program.cpp opensprinkler_server.cpp utils.cpp weather.cpp gpio.cpp mqtt.cpp smtp.c -Iexternal/TinyWebsockets/tiny_websockets_lib/include $ws -Iexternal/OpenThings-Framework-Firmware-Library/ $otf -lpthread -lmosquitto -lssl -lcrypto $GPIOLIB
 fi
 
 if [ -f /etc/init.d/OpenSprinkler.sh ]; then

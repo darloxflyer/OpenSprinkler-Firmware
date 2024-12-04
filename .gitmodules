@@ -4,3 +4,6 @@
 [submodule "external/TinyWebsockets"]
 	path = external/TinyWebsockets
 	url = https://github.com/gilmaimon/TinyWebsockets.git
+[submodule "external/SSD1306_OLED_RPI"]
+	path = external/SSD1306_OLED_RPI
+	url = https://github.com/gavinlyonsrepo/SSD1306_OLED_RPI.git
