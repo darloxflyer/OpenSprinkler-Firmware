@@ -32,7 +32,7 @@ enum {
 #endif
 
 
-#if defined(ESP8266)
+#if defined(ESP8266) || defined(USE_SSD1306)
 
 #define WiFi_Logo_width 60
 #define WiFi_Logo_height 36

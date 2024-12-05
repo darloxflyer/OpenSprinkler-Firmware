@@ -100,6 +100,9 @@ extern ProgramData pd;
   		    unsigned char OpenSprinkler::pin_sr_data = PIN_SR_DATA;
         #endif
 	#endif
+	#if defined(USE_SSD1306)
+		SSD1306Display OpenSprinkler::lcd(128, 64);
+	#endif
 	// todo future: LCD define for Linux-based systems
 #endif
 
@@ -974,6 +977,13 @@ void OpenSprinkler::begin() {
 
     #endif
 
+	#if defined(USE_GPIO_BUTTONS)
+		pinMode(PIN_BUTTON_1, INPUT_PULLUP);
+		pinMode(PIN_BUTTON_2, INPUT_PULLUP);
+		pinMode(PIN_BUTTON_3, INPUT_PULLUP);
+		pinMode(PIN_BUTTON_4, INPUT_PULLUP);
+#endif
+
 #endif
 
 	// Reset all stations
@@ -1338,11 +1348,11 @@ void OpenSprinkler::apply_all_station_bits() {
 		for(s=0;s<8;s++) {
 	#if defined(MANUAL_RELAY)
 			digitalWrite(pin_relays[7-s], (sbits & ((unsigned char)1 << (7 - s))) ? HIGH : LOW);
-			DEBUG_PRINT("Shift contents: ");
-			DEBUG_PRINT(sbits);
-			DEBUG_PRINT(" -> ");
-			DEBUG_PRINT(s);
-			DEBUG_PRINTLN(" is set.");
+			//DEBUG_PRINT("Shift contents: ");
+			//DEBUG_PRINT(sbits);
+			//DEBUG_PRINT(" -> ");
+			//DEBUG_PRINT(s);
+			//DEBUG_PRINTLN(" is set.");
     #else
 			digitalWrite(PIN_SR_CLOCK, LOW);
 		#if defined(OSPI) // if OSPI, use dynamically assigned pin_sr_data
@@ -2585,7 +2595,7 @@ void OpenSprinkler::raindelay_stop() {
 /** LCD and button functions */
 #if defined(ARDUINO)		// AVR LCD and button functions
 /** print a program memory string */
-#if defined(ESP8266)
+#if defined(ESP8266) 
 void OpenSprinkler::lcd_print_pgm(PGM_P str) {
 #else
 void OpenSprinkler::lcd_print_pgm(PGM_P PROGMEM str) {
@@ -2888,6 +2898,9 @@ void OpenSprinkler::lcd_print_option(int i) {
 
 }
 
+#endif
+
+#if defined(ARDUINO) || defined(USE_GPIO_BUTTONS)
 /** Button functions */
 /** wait for button */
 unsigned char OpenSprinkler::button_read_busy(unsigned char pin_butt, unsigned char waitmode, unsigned char butt, unsigned char is_holding) {
@@ -2926,6 +2939,11 @@ unsigned char OpenSprinkler::button_read(unsigned char waitmode)
 	} else if (digitalReadExt(PIN_BUTTON_3) == 0) {
 		curr = button_read_busy(PIN_BUTTON_3, waitmode, BUTTON_3, is_holding);
 	}
+#if defined(USE_GPIO_BUTTONS)
+	  else if (digitalReadExt(PIN_BUTTON_4) == 0) {
+		curr = button_read_busy(PIN_BUTTON_4, waitmode, BUTTON_4, is_holding);
+    }
+#endif
 
 	// set flags in return value
 	unsigned char ret = curr;
@@ -2989,7 +3007,7 @@ void OpenSprinkler::ui_set_options(int oid)
 				if (hw_type==HW_TYPE_AC && i==IOPT_BOOST_TIME) i++;	// skip boost time for non-DC controller
 				#if defined(ESP8266)
 				else if (lcd.type()==LCD_I2C && i==IOPT_LCD_CONTRAST) i+=3;
-				#else
+				#elif defined(ARDUINO)
 				else if (lcd.type()==LCD_I2C && i==IOPT_LCD_CONTRAST) i+=2;
 				#endif
 				// string options are not editable
@@ -2997,13 +3015,16 @@ void OpenSprinkler::ui_set_options(int oid)
 			break;
 		}
 
+        #if defined(ARDUINO)
 		if (button != BUTTON_NONE) {
 			lcd_print_option(i);
 		}
+        #endif
 	}
 	lcd.noBlink();
 }
 
+#if defined(ARDUINO)
 /** Set LCD contrast (using PWM) */
 void OpenSprinkler::lcd_set_contrast() {
 #ifdef PIN_LCD_CONTRAST

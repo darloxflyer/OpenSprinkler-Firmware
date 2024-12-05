@@ -30,6 +30,8 @@ for val in "${useopts[@]}"; do
     USESSD1306="1"
   elif [ "$val" == "manual_relay" ]; then
     USEMODULES+="-DMANUAL_RELAY "
+  elif [ "$val" == "use_gpio_buttons"]; then
+    USEMODULES+="-DUSE_GPIO_BUTTONS "
   else
     echo "Unknown use option specified: $val"
     exit 0
@@ -69,9 +71,11 @@ else
 	apt-get update
 	apt-get install -y libmosquitto-dev raspi-gpio libi2c-dev libssl-dev libgpiod-dev
 
+	ssd1306=""
 	if [ "$USESSD1306" == "1" ]; then
 	  echo "Installing SSD1306 Display Support"
 	  apt-get install -y libbcm2835-dev
+	  ssd1306="-Iexternal/SSD1306_OLED_RPI/include $(ls external/SSD1306_OLED_RPI/src/*.cpp)"
 	fi
 
 	if ! command -v raspi-gpio &> /dev/null
@@ -92,7 +96,7 @@ else
 	echo "Compiling ospi firmware..."
     ws=$(ls external/TinyWebsockets/tiny_websockets_lib/src/*.cpp)
     otf=$(ls external/OpenThings-Framework-Firmware-Library/*.cpp)
-	g++ -o OpenSprinkler -DOSPI $USEMODULES $USEGPIO -DSMTP_OPENSSL $DEBUG -std=c++14 -include string.h main.cpp OpenSprinkler.cpp program.cpp opensprinkler_server.cpp utils.cpp weather.cpp gpio.cpp mqtt.cpp smtp.c -Iexternal/TinyWebsockets/tiny_websockets_lib/include $ws -Iexternal/OpenThings-Framework-Firmware-Library/ $otf -lpthread -lmosquitto -lssl -lcrypto $GPIOLIB
+	g++ -o OpenSprinkler -DOSPI $USEMODULES $USEGPIO -DSMTP_OPENSSL $DEBUG -std=c++14 -include string.h main.cpp OpenSprinkler.cpp program.cpp opensprinkler_server.cpp utils.cpp weather.cpp gpio.cpp mqtt.cpp smtp.c -Iexternal/TinyWebsockets/tiny_websockets_lib/include $ws -Iexternal/OpenThings-Framework-Firmware-Library/ $otf $ssd1306 -lpthread -lmosquitto -lssl -lcrypto $GPIOLIB
 fi
 
 if [ -f /etc/init.d/OpenSprinkler.sh ]; then

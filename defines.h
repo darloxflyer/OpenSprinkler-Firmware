@@ -464,6 +464,9 @@ enum {
     #define PIN_FREE_LIST       {}  // free GPIO pins
     #define ETHER_BUFFER_SIZE   16384
 
+    #if defined(USE_SSD1306) // SSD1306 LCD Display
+        #define LCD_I2CADDR      0x3C // 128x64 OLED display I2C address
+    #endif
 
 #elif defined(OSBO) // for OSBo
 
@@ -556,6 +559,9 @@ enum {
 #define BUTTON_1            0x01
 #define BUTTON_2            0x02
 #define BUTTON_3            0x04
+#if defined(USE_GPIO_BUTTONS)
+    #define BUTTON_4		0x08
+#endif
 
 // button status values
 #define BUTTON_NONE         0x00  // no button pressed
@@ -574,5 +580,12 @@ enum {
 #define BUTTON_WAIT_HOLD       2  // wait until button hold time expires
 
 #define DISPLAY_MSG_MS      2000  // message display time (milliseconds)
+
+#if defined(USE_GPIO_BUTTONS)
+    #define PIN_BUTTON_1    23
+    #define PIN_BUTTON_2    24
+    #define PIN_BUTTON_3    15
+    #define PIN_BUTTON_4    18
+#endif
 
 #endif  // _DEFINES_H

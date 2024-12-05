@@ -22,6 +22,8 @@
       "defines": [
         "OSPI",
         "MANUAL_RELAY",
+        "USE_SSD1306",
+        "USE_GPIO_BUTTONS",
         "_DEBUG",
         "UNICODE",
         "_UNICODE"

@@ -65,6 +65,9 @@
 	#include "OpenThingsFramework.h"
 	#include "etherport.h"
 	#include "smtp.h"
+	#if defined(USE_SSD1306)
+		#include "SSD1306_RPi.h"
+	#endif
 #endif // end of headers
 
 #if defined(ARDUINO)
@@ -214,6 +217,8 @@ public:
 	// data members
 #if defined(ESP8266)
 	static SSD1306Display lcd;  // 128x64 OLED display
+#elif defined(USE_SSD1306)
+	static SSD1306 lcd;         // 128x64 OLED display on RPi
 #elif defined(ARDUINO)
 	static LiquidCrystal lcd;   // 16x2 character LCD
 #else
@@ -382,41 +387,49 @@ public:
 		str+=s%10;
 		return str;
 	}
+
+	// -- UI functions --
+	static void lcd_set_brightness(unsigned char value = 1);
+	static void lcd_set_contrast();
+
+	#if defined(ESP8266)
+		static IOEXP* mainio, * drio;
+		static IOEXP* expanders[];
+		static RCSwitch rfswitch;
+		static void detect_expanders();
+		static void flash_screen();
+		static void toggle_screen_led();
+		static void set_screen_led(unsigned char status);
+		static unsigned char get_wifi_mode() { if (useEth) return WIFI_MODE_STA; else return wifi_testmode ? WIFI_MODE_STA : iopts[IOPT_WIFI_MODE]; }
+		static unsigned char wifi_testmode;
+		static String wifi_ssid, wifi_pass;
+		static unsigned char wifi_bssid[6], wifi_channel;
+		static void config_ip();
+		static void save_wifi_ip();
+		static void reset_to_ap();
+		static unsigned char state;
+	#endif
+#endif
+
+#if defined(ARDUINO) || defined(USE_GPIO_BUTTONS) // Button functions for Arduino
 	// -- UI and buttons
+	static void ui_set_options(int oid);		// ui for setting options (oid-> starting option index)
 	static unsigned char button_read(unsigned char waitmode); // Read button value. options for 'waitmodes' are:
 																					// BUTTON_WAIT_NONE, BUTTON_WAIT_RELEASE, BUTTON_WAIT_HOLD
 																					// return values are 'OR'ed with flags
 																					// check defines.h for details
 
-	// -- UI functions --
-	static void ui_set_options(int oid);		// ui for setting options (oid-> starting option index)
-	static void lcd_set_brightness(unsigned char value=1);
-	static void lcd_set_contrast();
-
-	#if defined(ESP8266)
-	static IOEXP *mainio, *drio;
-	static IOEXP *expanders[];
-	static RCSwitch rfswitch;
-	static void detect_expanders();
-	static void flash_screen();
-	static void toggle_screen_led();
-	static void set_screen_led(unsigned char status);
-	static unsigned char get_wifi_mode() { if (useEth) return WIFI_MODE_STA; else return wifi_testmode ? WIFI_MODE_STA : iopts[IOPT_WIFI_MODE];}
-	static unsigned char wifi_testmode;
-	static String wifi_ssid, wifi_pass;
-	static unsigned char wifi_bssid[6], wifi_channel;
-	static void config_ip();
-	static void save_wifi_ip();
-	static void reset_to_ap();
-	static unsigned char state;
-	#endif
-
+#endif
 private:
+#if defined(ARDUINO)
 	static void lcd_print_option(int i);  // print an option to the lcd
 	static void lcd_print_2digit(int v);  // print a integer in 2 digits
 	static void lcd_start();
+#endif
+#if defined(ARDUINO) || defined(USE_GPIO_BUTTONS)
 	static unsigned char button_read_busy(unsigned char pin_butt, unsigned char waitmode, unsigned char butt, unsigned char is_holding);
-
+#endif
+#if defined(ARDUINO)
 	#if defined(ESP8266)
 	static void latch_boost();
 	static void latch_open(unsigned char sid);
