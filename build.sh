@@ -30,7 +30,7 @@ for val in "${useopts[@]}"; do
     USESSD1306="1"
   elif [ "$val" == "manual_relay" ]; then
     USEMODULES+="-DMANUAL_RELAY "
-  elif [ "$val" == "use_gpio_buttons"]; then
+  elif [ "$val" == "use_gpio_buttons" ]; then
     USEMODULES+="-DUSE_GPIO_BUTTONS "
   else
     echo "Unknown use option specified: $val"

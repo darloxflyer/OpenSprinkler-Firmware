@@ -2939,6 +2939,9 @@ unsigned char OpenSprinkler::button_read(unsigned char waitmode)
 	} else if (digitalReadExt(PIN_BUTTON_3) == 0) {
 		curr = button_read_busy(PIN_BUTTON_3, waitmode, BUTTON_3, is_holding);
 	}
+
+#endif
+
 #if defined(USE_GPIO_BUTTONS)
 	  else if (digitalReadExt(PIN_BUTTON_4) == 0) {
 		curr = button_read_busy(PIN_BUTTON_4, waitmode, BUTTON_4, is_holding);
@@ -3021,7 +3024,9 @@ void OpenSprinkler::ui_set_options(int oid)
 		}
         #endif
 	}
+    #if defined(ARDUINO)
 	lcd.noBlink();
+    #endif
 }
 
 #if defined(ARDUINO)
