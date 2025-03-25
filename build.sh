@@ -24,6 +24,7 @@ shift $((OPTIND -1))
 # Process include options to build additional modules
 USESSD1306=""
 USEMODULES=""
+SKIP_PACKAGES=false
 for val in "${useopts[@]}"; do
   if [ "$val" == "ssd1306" ]; then
     USEMODULES+="-DUSE_SSD1306 "
@@ -32,6 +33,8 @@ for val in "${useopts[@]}"; do
     USEMODULES+="-DMANUAL_RELAY "
   elif [ "$val" == "use_gpio_buttons" ]; then
     USEMODULES+="-DUSE_GPIO_BUTTONS "
+  elif [ "$val" == "skip_packages" ]; then
+    SKIP_PACKAGES=true
   else
     echo "Unknown use option specified: $val"
     exit 0
@@ -67,15 +70,17 @@ elif [ "$1" == "osbo" ]; then
     otf=$(ls external/OpenThings-Framework-Firmware-Library/*.cpp)
 	g++ -o OpenSprinkler -DOSBO -DSMTP_OPENSSL $DEBUG -std=c++14 -include string.h main.cpp OpenSprinkler.cpp program.cpp opensprinkler_server.cpp utils.cpp weather.cpp gpio.cpp mqtt.cpp smtp.c -Iexternal/TinyWebsockets/tiny_websockets_lib/include $ws -Iexternal/OpenThings-Framework-Firmware-Library/ $otf -lpthread -lmosquitto -lssl -lcrypto
 else
-	echo "Installing required libraries..."
-	apt-get update
-	apt-get install -y libmosquitto-dev raspi-gpio libi2c-dev libssl-dev libgpiod-dev
+        if [ ! "$SKIP_PACKAGES" = true ]; then
+  	  echo "Installing required libraries..."
+  	  apt-get update
+	  apt-get install -y libmosquitto-dev raspi-gpio libi2c-dev libssl-dev libgpiod-dev
 
-	ssd1306=""
-	if [ "$USESSD1306" == "1" ]; then
-	  echo "Installing SSD1306 Display Support"
-	  apt-get install -y libbcm2835-dev
-	  ssd1306="-Iexternal/SSD1306_OLED_RPI/include $(ls external/SSD1306_OLED_RPI/src/*.cpp)"
+	  ssd1306=""
+	  if [ "$USESSD1306" == "1" ]; then
+	    echo "Installing SSD1306 Display Support"
+	    apt-get install -y libbcm2835-dev
+	    ssd1306="-Iexternal/SSD1306_OLED_RPI/include $(ls external/SSD1306_OLED_RPI/src/*.cpp)"
+	  fi
 	fi
 
 	if ! command -v raspi-gpio &> /dev/null
