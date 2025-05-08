@@ -28,6 +28,30 @@
 #include "program.h"
 #include "ArduinoJson.hpp"
 
+// ——————————————————————————————————————————
+// SSD1306 support for Raspberry Pi “ospi” build
+// ——————————————————————————————————————————
+#if defined(OSPI) && defined(USE_SSD1306)
+  #include "LinuxSSD1306Display.h"
+  // instantiate the one-and-only display object:
+  static LinuxSSD1306Display lcd(128, 64, "/dev/i2c-1", 0x3C);
+
+  #define LCD_INIT()             lcd.begin()
+  #define LCD_CLEAR()            lcd.clear()
+  #define LCD_SET_CURSOR(x,y)    lcd.setCursor((x),(y))
+  #define LCD_PRINT(str)         lcd.print((str))
+  #define LCD_DISPLAY()          lcd.display()
+  #define LCD_DRAW_XBM(x,y,w,h,b) lcd.drawXbm((x),(y),(w),(h),(b))
+#else
+  // no-op stubs when SSD1306 isn’t enabled
+  #define LCD_INIT()             (void)0
+  #define LCD_CLEAR()            (void)0
+  #define LCD_SET_CURSOR(x,y)    (void)0
+  #define LCD_PRINT(str)         (void)0
+  #define LCD_DISPLAY()          (void)0
+  #define LCD_DRAW_XBM(x,y,w,h,b) (void)0
+#endif
+
 /** Declare static data members */
 OSMqtt OpenSprinkler::mqtt;
 NVConData OpenSprinkler::nvdata;
@@ -99,9 +123,6 @@ extern ProgramData pd;
         #else
   		    unsigned char OpenSprinkler::pin_sr_data = PIN_SR_DATA;
         #endif
-	#endif
-	#if defined(USE_SSD1306)
-		SSD1306Display OpenSprinkler::lcd(128, 64);
 	#endif
 	// todo future: LCD define for Linux-based systems
 #endif
@@ -839,6 +860,15 @@ void OpenSprinkler::begin() {
 
 #if defined(ARDUINO)
 	Wire.begin(); // init I2C
+#endif
+
+#if defined(USE_SSD1306)
+	if (!LCD_INIT()) {
+		fprintf(stderr, "[OSPI] OLED init failed\n");
+	} else {
+		LCD_CLEAR();
+		LCD_DISPLAY();
+	}
 #endif
 
 	hw_type = HW_TYPE_UNKNOWN;
