@@ -79,8 +79,12 @@ else
 	  if [ "$USESSD1306" == "1" ]; then
 	    echo "Installing SSD1306 Display Support"
 	    apt-get install -y libbcm2835-dev
-	    ssd1306="-Iexternal/SSD1306_OLED_RPI/include $(ls external/SSD1306_OLED_RPI/src/*.cpp)"
 	  fi
+	fi
+	
+	if [ "$USESSD1306" == "1" ]; then
+	    echo "Including Adafruit SSD1306 Drivers"
+	    ssd1306="-Ilibs/Adafruit_GFX -Ilibs/Adafruit_SSD1306"
 	fi
 
 	if ! command -v raspi-gpio &> /dev/null
