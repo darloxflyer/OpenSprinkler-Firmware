@@ -33,8 +33,9 @@
 // ——————————————————————————————————————————
 #if defined(OSPI) && defined(USE_SSD1306)
   #include "LinuxSSD1306Display.h"
+  #include "images.h"
   // instantiate the one-and-only display object:
-  static LinuxSSD1306Display lcd(128, 64, "/dev/i2c-1", 0x3C);
+  static LinuxSSD1306Display lcd(128, 64, 0, 0x3C);
 
   #define LCD_INIT()             lcd.begin()
   #define LCD_CLEAR()            lcd.clear()
@@ -534,8 +535,18 @@ void(* resetFunc) (void) = 0; // AVR software reset function
 /** Initialize network with the given mac address and http port */
 
 unsigned char OpenSprinkler::start_network() {
-	lcd_print_line_clear_pgm(PSTR("Starting..."), 1);
 	uint16_t httpport = (uint16_t)(iopts[IOPT_HTTPPORT_1]<<8) + (uint16_t)iopts[IOPT_HTTPPORT_0];
+
+#if defined(ESP3266)
+	lcd_print_line_clear_pgm(PSTR("Starting..."), 1);
+#endif
+
+#if defined(USE_SSD1306)
+	LCD_CLEAR();
+	LCD_SET_CURSOR(0, 8);
+	LCD_PRINT("Starting...");
+	LCD_DISPLAY();
+#endif
 
 #if defined(ESP8266)
 
@@ -655,15 +666,46 @@ unsigned char OpenSprinkler::start_ether() {
 	}
 	eth.setDefault();
 	if(!eth.begin((uint8_t*)tmp_buffer))	return 0;
-	lcd_print_line_clear_pgm(PSTR("Start wired link"), 1);
-	lcd_print_line_clear_pgm(eth.isW5500 ? PSTR("  [w5500]    ") : PSTR(" [enc28j60]  "), 2);
-	
+
+#endif
+
+	#if defined(ESP8266)
+		lcd_print_line_clear_pgm(PSTR("Start wired link"), 1);
+		lcd_print_line_clear_pgm(eth.isW5500 ? PSTR("  [w5500]    ") : PSTR(" [enc28j60]  "), 2);
+	#endif
+	#if defined(USE_SSD1306)
+		LCD_CLEAR();
+		LCD_SET_CURSOR(0, 8);
+		LCD_PRINT("Start wired link");
+		LCD_SET_CURSOR(0, 16);
+		LCD_PRINT(eth.isW5500 ? "  [w5500]    " : " [enc28j60]  ");
+		LCD_DISPLAY();
+	#endif
+
+#if defined(ESP8266)
 	ulong timeout = millis()+60000; // 60 seconds time out
 	unsigned char timecount = 1;
 	while (!eth.connected() && millis()<timeout) {
 		DEBUG_PRINT(".");
 		lcd.setCursor(13, 2);
 		lcd.print(timecount);
+#endif		
+		#if defined(ESP8266)
+			lcd.setCursor(13, 2);
+			lcd.print(timecount);
+		#endif
+		#if defined(USE_SSD1306)
+		// Pi: draw the same row/col via pixel coords
+		LCD_SET_CURSOR(78, 16);
+		{
+			char __buf[4];
+			std::snprintf(__buf, sizeof(__buf), "%u", timecount);
+			LCD_PRINT(__buf);
+		}
+		LCD_DISPLAY();
+		#endif
+
+#if defined(ESP8266)		
 		delay(1000);
 		timecount++;
 	}
@@ -729,6 +771,13 @@ bool OpenSprinkler::network_connected(void) {
 /** Reboot controller */
 void OpenSprinkler::reboot_dev(uint8_t cause) {
 	lcd_print_line_clear_pgm(PSTR("Rebooting..."), 0);
+
+#if defined(USE_SSD1306)
+	LCD_CLEAR();
+	LCD_SET_CURSOR(0, 0);
+	LCD_PRINT("Rebooting...");
+	LCD_DISPLAY();
+#endif
 	if(cause) {
 		nvdata.reboot_cause = cause;
 		nvdata_save();
@@ -828,28 +877,28 @@ void OpenSprinkler::update_dev() {
 /** Initialize LCD */
 void OpenSprinkler::lcd_start() {
 
-#if defined(ESP8266)
-	// initialize SSD1306
-	lcd.init();
-	lcd.begin();
-	flash_screen();
-#else
-	// initialize 16x2 character LCD
-	// turn on lcd
-	lcd.init(1, PIN_LCD_RS, 255, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7, 0,0,0,0);
-	lcd.begin();
+	#if defined(ESP8266)
+		// initialize SSD1306
+		lcd.init();
+		lcd.begin();
+		flash_screen();
+	#else
+		// initialize 16x2 character LCD
+		// turn on lcd
+		lcd.init(1, PIN_LCD_RS, 255, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7, 0,0,0,0);
+		lcd.begin();
 
-	if (lcd.type() == LCD_STD) {
-		// this is standard 16x2 LCD
-		// set PWM frequency for adjustable LCD backlight and contrast
-		TCCR1B = 0x02;	// increase division factor for faster clock
-		// turn on LCD backlight and contrast
-		lcd_set_brightness();
-		lcd_set_contrast();
-	} else {
-		// for I2C LCD, we don't need to do anything
-	}
-#endif
+		if (lcd.type() == LCD_STD) {
+			// this is standard 16x2 LCD
+			// set PWM frequency for adjustable LCD backlight and contrast
+			TCCR1B = 0x02;	// increase division factor for faster clock
+			// turn on LCD backlight and contrast
+			lcd_set_brightness();
+			lcd_set_contrast();
+		} else {
+			// for I2C LCD, we don't need to do anything
+		}
+	#endif
 }
 #endif
 
@@ -866,6 +915,7 @@ void OpenSprinkler::begin() {
 	if (!LCD_INIT()) {
 		fprintf(stderr, "[OSPI] OLED init failed\n");
 	} else {
+	        fprintf(stderr, "[OSPI] OLED initialized\n");
 		LCD_CLEAR();
 		LCD_DISPLAY();
 	}
@@ -1122,6 +1172,7 @@ void OpenSprinkler::begin() {
 		lcd.setCursor(0,0);
 		lcd.print(F("Init file system"));
 		lcd.setCursor(0,1);
+		
 		if(!LittleFS.begin()) {
 			// !!! flash init failed, stall as we cannot proceed
 			lcd.setCursor(0, 0);

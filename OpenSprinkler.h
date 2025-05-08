@@ -65,9 +65,6 @@
 	#include "OpenThingsFramework.h"
 	#include "etherport.h"
 	#include "smtp.h"
-	#if defined(USE_SSD1306)
-		#include "SSD1306_RPi.h"
-	#endif
 #endif // end of headers
 
 #if defined(ARDUINO)
@@ -217,8 +214,6 @@ public:
 	// data members
 #if defined(ESP8266)
 	static SSD1306Display lcd;  // 128x64 OLED display
-#elif defined(USE_SSD1306)
-	static SSD1306 lcd;         // 128x64 OLED display on RPi
 #elif defined(ARDUINO)
 	static LiquidCrystal lcd;   // 16x2 character LCD
 #else
