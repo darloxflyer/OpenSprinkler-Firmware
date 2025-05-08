@@ -84,7 +84,7 @@ else
 	
 	if [ "$USESSD1306" == "1" ]; then
 	    echo "Including Adafruit SSD1306 Drivers"
-	    ssd1306="-Ilibs/Adafruit_GFX -Ilibs/Adafruit_SSD1306"
+	    ssd1306="-Iexternal/Adafruit_GFX -Iexternal/Adafruit_SSD1306 external/Adafruit_GFX/Adafruit_GFX.cpp external/Adafruit_SSD1306/Adafruit_SSD1306.cpp"
 	fi
 
 	if ! command -v raspi-gpio &> /dev/null
@@ -105,7 +105,7 @@ else
 	echo "Compiling ospi firmware..."
     ws=$(ls external/TinyWebsockets/tiny_websockets_lib/src/*.cpp)
     otf=$(ls external/OpenThings-Framework-Firmware-Library/*.cpp)
-	g++ -o OpenSprinkler -DOSPI $USEMODULES $USEGPIO -DSMTP_OPENSSL $DEBUG -std=c++14 -include string.h main.cpp OpenSprinkler.cpp program.cpp opensprinkler_server.cpp utils.cpp weather.cpp gpio.cpp mqtt.cpp smtp.c -Iexternal/TinyWebsockets/tiny_websockets_lib/include $ws -Iexternal/OpenThings-Framework-Firmware-Library/ $otf $ssd1306 -lpthread -lmosquitto -lssl -lcrypto $GPIOLIB
+	g++ -o OpenSprinkler -DOSPI $USEMODULES $USEGPIO -DSMTP_OPENSSL $DEBUG -std=c++14 -include $ssd1306 string.h main.cpp OpenSprinkler.cpp program.cpp opensprinkler_server.cpp utils.cpp weather.cpp gpio.cpp mqtt.cpp smtp.c -Iexternal/TinyWebsockets/tiny_websockets_lib/include $ws -Iexternal/OpenThings-Framework-Firmware-Library/ $otf -lpthread -lmosquitto -lssl -lcrypto $GPIOLIB
 fi
 
 if [ -f /etc/init.d/OpenSprinkler.sh ]; then
