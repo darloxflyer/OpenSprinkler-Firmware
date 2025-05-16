@@ -3025,6 +3025,8 @@ void OpenSprinkler::lcd_print_screen(char c) {
 			bitvalue >>= 1;
 		}
 	}
+	LCD_SET_CURSOR_LINE(lcd, 0, 3);
+	LCD_PRINT(lcd, "12345678");
 
 	// Push buffer to display
 	LCD_DISPLAY(lcd);
