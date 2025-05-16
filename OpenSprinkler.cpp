@@ -35,22 +35,7 @@
   #include "LinuxSSD1306Display.h"
   #include "images.h"
   // instantiate the one-and-only display object:
-  static LinuxSSD1306Display lcd(128, 64, 0, 0x3C);
-
-  #define LCD_INIT()             lcd.begin()
-  #define LCD_CLEAR()            lcd.clear()
-  #define LCD_SET_CURSOR(x,y)    lcd.setCursor((x),(y))
-  #define LCD_PRINT(str)         lcd.print((str))
-  #define LCD_DISPLAY()          lcd.display()
-  #define LCD_DRAW_XBM(x,y,w,h,b,i) lcd.drawXbm((x),(y),(w),(h),(b),(i))
-#else
-  // no-op stubs when SSD1306 isn’t enabled
-  #define LCD_INIT()             (void)0
-  #define LCD_CLEAR()            (void)0
-  #define LCD_SET_CURSOR(x,y)    (void)0
-  #define LCD_PRINT(str)         (void)0
-  #define LCD_DISPLAY()          (void)0
-  #define LCD_DRAW_XBM(x,y,w,h,b,i) (void)0
+  LinuxSSD1306Display lcd(128, 64, 0, 0x3C);
 #endif
 
 /** Declare static data members */
@@ -542,10 +527,10 @@ unsigned char OpenSprinkler::start_network() {
 #endif
 
 #if defined(USE_SSD1306)
-	LCD_CLEAR();
-	LCD_SET_CURSOR(0, 8);
-	LCD_PRINT("Starting...");
-	LCD_DISPLAY();
+	LCD_CLEAR(lcd);
+	LCD_SET_CURSOR(lcd, 0, 8);
+	LCD_PRINT(lcd, "Starting...");
+	LCD_DISPLAY(lcd);
 #endif
 
 #if defined(ESP8266)
@@ -674,12 +659,12 @@ unsigned char OpenSprinkler::start_ether() {
 		lcd_print_line_clear_pgm(eth.isW5500 ? PSTR("  [w5500]    ") : PSTR(" [enc28j60]  "), 2);
 	#endif
 	#if defined(USE_SSD1306)
-		LCD_CLEAR();
-		LCD_SET_CURSOR(0, 8);
-		LCD_PRINT("Start wired link");
-		LCD_SET_CURSOR(0, 16);
-		LCD_PRINT(eth.isW5500 ? "  [w5500]    " : " [enc28j60]  ");
-		LCD_DISPLAY();
+		LCD_CLEAR(lcd);
+		LCD_SET_CURSOR(lcd, 0, 8);
+		LCD_PRINT(lcd, "Start wired link");
+		LCD_SET_CURSOR(lcd, 0, 16);
+		LCD_PRINT(lcd, eth.isW5500 ? "  [w5500]    " : " [enc28j60]  ");
+		LCD_DISPLAY(lcd);
 	#endif
 
 #if defined(ESP8266)
@@ -696,13 +681,13 @@ unsigned char OpenSprinkler::start_ether() {
 		#endif
 		#if defined(USE_SSD1306)
 		// Pi: draw the same row/col via pixel coords
-		LCD_SET_CURSOR(78, 16);
+		LCD_SET_CURSOR(lcd, 78, 16);
 		{
 			char __buf[4];
 			std::snprintf(__buf, sizeof(__buf), "%u", timecount);
-			LCD_PRINT(__buf);
+			LCD_PRINT(lcd, __buf);
 		}
-		LCD_DISPLAY();
+		LCD_DISPLAY(lcd);
 		#endif
 
 #if defined(ESP8266)		
@@ -773,10 +758,10 @@ void OpenSprinkler::reboot_dev(uint8_t cause) {
 	lcd_print_line_clear_pgm(PSTR("Rebooting..."), 0);
 
 #if defined(USE_SSD1306)
-	LCD_CLEAR();
-	LCD_SET_CURSOR(0, 0);
-	LCD_PRINT("Rebooting...");
-	LCD_DISPLAY();
+	LCD_CLEAR(lcd);
+	LCD_SET_CURSOR(lcd, 0, 0);
+	LCD_PRINT(lcd, "Rebooting...");
+	LCD_DISPLAY(lcd);
 #endif
 	if(cause) {
 		nvdata.reboot_cause = cause;
@@ -912,33 +897,33 @@ void OpenSprinkler::begin() {
 #endif
 
 #if defined(USE_SSD1306)
-	if (!LCD_INIT()) {
+	if (!LCD_INIT(lcd)) {
 		fprintf(stderr, "[OSPI] OLED init failed\n");
 	} else {
 	        fprintf(stderr, "[OSPI] OLED initialized\n");
 		// 1) simple text test
-		LCD_CLEAR();
-		LCD_SET_CURSOR(0, 0);
+		LCD_CLEAR(lcd);
+		LCD_SET_CURSOR(lcd, 0, 0);
 		fprintf(stderr, "[OSPI] OLED Text for 2 sec...\n");
-		LCD_PRINT("Hello, OpenSprinkler!");
-		LCD_DISPLAY();
+		LCD_PRINT(lcd, "Hello, OpenSprinkler!");
+		LCD_DISPLAY(lcd);
 		sleep(2);                  // hold for 2s so you can see it
 
 		// 2) bitmap + label test
-		LCD_CLEAR();
+		LCD_CLEAR(lcd);
 		// draw a 32×32 icon at (48,8)—adjust the name/size to match images.h
 		fprintf(stderr, "[OSPI] OLED Bitmap for 2 sec...\n");
-		LCD_DRAW_XBM(48, 8, 32, 32, reinterpret_cast<const uint8_t*>(_iconimage_wifi_connected), false);
+		LCD_DRAW_XBM(lcd, 48, 8, 16, 8, reinterpret_cast<const uint8_t*>(_iconimage_wifi_connected), false);
 		// put a label underneath
-		LCD_SET_CURSOR(0, 48);
-		LCD_PRINT("Icon OK");
-		LCD_DISPLAY();
+		LCD_SET_CURSOR(lcd, 0, 48);
+		LCD_PRINT(lcd ,"Icon OK");
+		LCD_DISPLAY(lcd);
 		sleep(2);
 
 		// 3) back to blank screen
 		fprintf(stderr, "[OSPI] OLED Cleared\n");
-		LCD_CLEAR();
-		LCD_DISPLAY();
+		LCD_CLEAR(lcd);
+		LCD_DISPLAY(lcd);
         }
 #endif
 
@@ -1448,7 +1433,7 @@ void OpenSprinkler::apply_all_station_bits() {
 			sbits = 0;
 
 		for(s=0;s<8;s++) {
-	#if defined(MANUAL_RELAY)
+    #if defined(MANUAL_RELAY)
 			digitalWrite(pin_relays[7-s], (sbits & ((unsigned char)1 << (7 - s))) ? HIGH : LOW);
 			//DEBUG_PRINT("Shift contents: ");
 			//DEBUG_PRINT(sbits);

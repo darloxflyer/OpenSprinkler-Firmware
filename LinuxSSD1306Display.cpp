@@ -9,6 +9,10 @@
 #include "SSD1306_OLED.hpp"   // from SSD1306_OLED_RPi library
 
 
+// constants for text height + optional spacing
+static const uint8_t LCD_FONT_HEIGHT   = 8;   // pixels
+static const uint8_t LCD_LINE_SPACING  = 2;   // blank pixels between lines
+
 LinuxSSD1306Display::LinuxSSD1306Display(uint8_t width,
                                          uint8_t height,
                                          uint16_t i2c_speed,
@@ -96,4 +100,40 @@ void LinuxSSD1306Display::setCursor(int16_t x, int16_t y) {
 
 size_t LinuxSSD1306Display::print(const char* text) {
     return oled_.print(text);
+}
+
+bool LCD_INIT(LinuxSSD1306Display lcd){
+    return lcd.begin();
+}
+
+void LCD_CLEAR(LinuxSSD1306Display lcd){
+    lcd.clear();
+}
+
+void LCD_SET_CURSOR(LinuxSSD1306Display lcd, uint8_t col, uint8_t row){
+    lcd.setCursor((col),(row));
+}
+    
+void LCD_SET_CURSOR_LINE(LinuxSSD1306Display lcd, uint8_t col, uint8_t line){
+    uint8_t row = line * (LCD_FONT_HEIGHT + LCD_LINE_SPACING);
+    lcd.setCursor((col),(row));
+}
+    
+void LCD_PRINT(LinuxSSD1306Display lcd, const char* str){
+    lcd.print((str));
+}
+
+void LCD_PRINT_NUMBER(LinuxSSD1306Display lcd, int n){
+    char buf[12];
+    snprintf(buf, sizeof(buf), "%d", n);
+    const char* str = buf;
+    lcd.print((str));
+}
+    
+void LCD_DISPLAY(LinuxSSD1306Display lcd){
+    lcd.display();
+}
+    
+void LCD_DRAW_XBM(LinuxSSD1306Display lcd, uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *bitmap, bool invert){
+    lcd.drawXbm((x),(y),(w),(h),(bitmap),(invert));
 }

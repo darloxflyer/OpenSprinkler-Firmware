@@ -37,6 +37,11 @@
 
 #include "ArduinoJson.hpp"
 
+#if defined(OSPI) && defined(USE_SSD1306)
+  #include "LinuxSSD1306Display.h"
+  #include "images.h"
+#endif
+
 #if defined(ARDUINO)
 	#if defined(ESP8266)
 		ESP8266WebServer *update_server = NULL;
@@ -1058,6 +1063,20 @@ void turn_on_station(unsigned char sid, ulong duration) {
 
 	if (os.set_station_bit(sid, 1, duration)) {
 		push_message(NOTIFY_STATION_ON, sid, duration);
+		#if defined(USESSD1306)
+		  // line 3: which zone
+		  LCD_SET_CURSOR_LINE(0,2);
+		  LCD_PRINT("Zone ");
+		  LCD_PRINT_NUMBER(sid+1);
+		  // line 4: time remaining (mm:ss)
+		  LCD_SET_CURSOR_LINE(0,3);
+		  {
+		    char buf[6];
+		    unsigned int m = duration/60, s = duration%60;
+		    sprintf(buf, "%02u:%02u", m, s);
+		    LCD_PRINT(buf);
+		  }
+		#endif
 	}
 }
 
@@ -1142,6 +1161,12 @@ void turn_off_station(unsigned char sid, time_os_t curr_time, unsigned char shif
 			// log station run
 			write_log(LOGDATA_STATION, curr_time); // LOG_TODO
 			push_message(NOTIFY_STATION_OFF, sid, pd.lastrun.duration);
+			#if defined(USESSD1306)
+			  LCD_SET_CURSOR_LINE(0,2);
+  			  LCD_PRINT("None");           // no active zone
+			  LCD_SET_CURSOR_LINE(0,3);
+			  LCD_PRINT("    ");           // clear timer
+			#endif
 		}
 	}
 
@@ -1332,6 +1357,14 @@ void manual_start_program(unsigned char pid, unsigned char uwt) {
 	if ((pid>0)&&(pid<255)) {
 		pd.read(pid-1, &prog);
 		push_message(NOTIFY_PROGRAM_SCHED, pid-1, uwt?os.iopts[IOPT_WATER_PERCENTAGE]:100, "");
+		#if defined(USESSD1306)
+		  LCD_CLEAR();
+		  LCD_SET_CURSOR_LINE(0,0);
+		  LCD_PRINT(prog.name);                            // line 1: program name
+		  LCD_SET_CURSOR_LINE(0,1);
+		  LCD_PRINT("Step 1 of ");
+		  LCD_PRINT_NUMBER(pd.nstations);                  // or your own “total steps” count
+		#endif
 	}
 	for(sid=0;sid<os.nstations;sid++) {
 		bid=sid>>3;
