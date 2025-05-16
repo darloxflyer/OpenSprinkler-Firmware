@@ -3027,6 +3027,7 @@ void OpenSprinkler::lcd_print_screen(char c) {
 	// Push buffer to display
 	LCD_DISPLAY(lcd);
 }
+#endif
 
 #if defined(ARDUINO) || defined(USE_GPIO_BUTTONS)
 /** Button functions */
