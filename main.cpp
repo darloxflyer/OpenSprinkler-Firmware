@@ -124,10 +124,10 @@ void flow_poll() {
 	/* End of RAH implementation of flow sensor */
 }
 
-#if defined(ARDUINO)
-// ====== UI defines ======
 static char ui_anim_chars[3] = {'.', 'o', 'O'};
 
+#if defined(ARDUINO)
+// ====== UI defines ======
 #define UI_STATE_DEFAULT   0
 #define UI_STATE_DISP_IP   1
 #define UI_STATE_DISP_GW   2
@@ -928,6 +928,9 @@ void do_loop()
 		// process LCD display
 		if (!ui_state) { os.lcd_print_screen(ui_anim_chars[(unsigned long)curr_time%3]); }
 
+#elif defined(OSPI) && defined(USE_SSD1306)
+		// process LCD display for OSPI with SSD1306
+		os.lcd_print_screen(ui_anim_chars[(unsigned long)curr_time % 3]);
 #endif
 
 		// handle reboot request

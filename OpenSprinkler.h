@@ -406,6 +406,10 @@ public:
 	#endif
 #endif
 
+#if defined(OSPI) && defined(USE_SSD1306)
+	static void lcd_print_screen(char c);  // print station bits of the board selected by display_board
+#endif
+
 #if defined(ARDUINO) || defined(USE_GPIO_BUTTONS) // Button functions for Arduino
 	// -- UI and buttons
 	static void ui_set_options(int oid);		// ui for setting options (oid-> starting option index)

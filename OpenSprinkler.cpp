@@ -2769,124 +2769,162 @@ void OpenSprinkler::lcd_print_mac(const unsigned char *mac) {
 }
 
 /** print station bits */
-void OpenSprinkler::lcd_print_screen(char c) {
-#if defined(ESP8266)
-	lcd.setAutoDisplay(false); // reduce screen drawing time by turning off display() when drawing individual characters
-#endif
-	lcd.setCursor(0, 1);
-	if (status.display_board == 0) {
-		lcd.print(F("MC:"));  // Master controller is display as 'MC'
-	}	else {
-		lcd.print(F("E"));
-		lcd.print((int)status.display_board);
-		lcd.print(F(":"));  // extension boards are displayed as E1, E2...
-	}
-	if (!status.enabled) {
-		lcd.print(F("-Disabled!-"));
-	} else {
-		unsigned char bitvalue = station_bits[status.display_board];
-		for (unsigned char s=0; s<8; s++) {
-			unsigned char sid = (unsigned char)status.display_board<<3;
-			sid += (s+1);
-			if (sid == iopts[IOPT_MASTER_STATION]) {
-				lcd.print((bitvalue&1) ? c : 'M'); // print master station
-			} else if (sid == iopts[IOPT_MASTER_STATION_2]) {
-				lcd.print((bitvalue&1) ? c : 'N'); // print master2 station
-			} else {
-				lcd.print((bitvalue&1) ? c : '_');
+#if defined(ARDUINO)
+	void OpenSprinkler::lcd_print_screen(char c) {
+	#if defined(ESP8266)
+		lcd.setAutoDisplay(false); // reduce screen drawing time by turning off display() when drawing individual characters
+	#endif
+		lcd.setCursor(0, 1);
+		if (status.display_board == 0) {
+			lcd.print(F("MC:"));  // Master controller is display as 'MC'
+		}	else {
+			lcd.print(F("E"));
+			lcd.print((int)status.display_board);
+			lcd.print(F(":"));  // extension boards are displayed as E1, E2...
+		}
+		if (!status.enabled) {
+			lcd.print(F("-Disabled!-"));
+		} else {
+			unsigned char bitvalue = station_bits[status.display_board];
+			for (unsigned char s=0; s<8; s++) {
+				unsigned char sid = (unsigned char)status.display_board<<3;
+				sid += (s+1);
+				if (sid == iopts[IOPT_MASTER_STATION]) {
+					lcd.print((bitvalue&1) ? c : 'M'); // print master station
+				} else if (sid == iopts[IOPT_MASTER_STATION_2]) {
+					lcd.print((bitvalue&1) ? c : 'N'); // print master2 station
+				} else {
+					lcd.print((bitvalue&1) ? c : '_');
+				}
+				bitvalue >>= 1;
 			}
-			bitvalue >>= 1;
 		}
-	}
-	//lcd.print(F("    "));
+		//lcd.print(F("    "));
 
-	lcd.setCursor(LCD_CURSOR_REMOTEXT, 1);
-	lcd.write(iopts[IOPT_REMOTE_EXT_MODE]?ICON_REMOTEXT:' ');
+		lcd.setCursor(LCD_CURSOR_REMOTEXT, 1);
+		lcd.write(iopts[IOPT_REMOTE_EXT_MODE]?ICON_REMOTEXT:' ');
 
-	lcd.setCursor(LCD_CURSOR_RAINDELAY, 1);
-	lcd.write((status.rain_delayed || status.pause_state)?ICON_RAINDELAY:' ');
+		lcd.setCursor(LCD_CURSOR_RAINDELAY, 1);
+		lcd.write((status.rain_delayed || status.pause_state)?ICON_RAINDELAY:' ');
 
-	// write sensor 1 icon
-	lcd.setCursor(LCD_CURSOR_SENSOR1, 1);
-	switch(iopts[IOPT_SENSOR1_TYPE]) {
-		case SENSOR_TYPE_RAIN:
-			lcd.write(status.sensor1_active?ICON_RAIN:(status.sensor1?'R':'r'));
-			break;
-		case SENSOR_TYPE_SOIL:
-			lcd.write(status.sensor1_active?ICON_SOIL:(status.sensor1?'S':'s'));
-			break;
-		case SENSOR_TYPE_FLOW:
-			lcd.write(flowcount_rt>0?'F':'f');
-			break;
-		case SENSOR_TYPE_PSWITCH:
-			lcd.write(status.sensor1?'P':'p');
-			break;
-		default:
-			lcd.write(' ');
-			break;
-	}
-
-	// write sensor 2 icon
-	lcd.setCursor(LCD_CURSOR_SENSOR2, 1);
-	switch(iopts[IOPT_SENSOR2_TYPE]) {
-		case SENSOR_TYPE_RAIN:
-			lcd.write(status.sensor2_active?ICON_RAIN:(status.sensor2?'R':'r'));
-			break;
-		case SENSOR_TYPE_SOIL:
-			lcd.write(status.sensor2_active?ICON_SOIL:(status.sensor2?'S':'s'));
-			break;
-			// sensor2 cannot be flow sensor
-		/*case SENSOR_TYPE_FLOW:
-			lcd.write('F');
-			break;*/
-		case SENSOR_TYPE_PSWITCH:
-			lcd.write(status.sensor2?'Q':'q');
-			break;
-		default:
-			lcd.write(' ');
-			break;
-	}
-
-	lcd.setCursor(LCD_CURSOR_NETWORK, 1);
-#if defined(ESP8266)
-	if(useEth) {
-		lcd.write(eth.connected()?ICON_ETHER_CONNECTED:ICON_ETHER_DISCONNECTED);	// todo: need to detect ether status
-	}
-	else
-		lcd.write(WiFi.status()==WL_CONNECTED?ICON_WIFI_CONNECTED:ICON_WIFI_DISCONNECTED);
-#else
-	lcd.write(status.network_fails>2?ICON_ETHER_DISCONNECTED:ICON_ETHER_CONNECTED);  // if network failure detection is more than 2, display disconnect icon
-#endif
-
-#if defined(ESP8266)
-
-	if(useEth || (get_wifi_mode()==WIFI_MODE_STA && WiFi.status()==WL_CONNECTED && WiFi.localIP())) {
-		lcd.setCursor(0, -1);
-		if(status.rain_delayed) {
-			lcd.print(F("<Rain Delay On> "));
-		} else if(status.pause_state) {
-			lcd.print(F("<Program Paused>"));
-		} else if(status.program_busy) {
-			lcd.print(F("<Running Zones> "));
-		} else {
-			lcd.print(F(" (System Idle)  "));
+		// write sensor 1 icon
+		lcd.setCursor(LCD_CURSOR_SENSOR1, 1);
+		switch(iopts[IOPT_SENSOR1_TYPE]) {
+			case SENSOR_TYPE_RAIN:
+				lcd.write(status.sensor1_active?ICON_RAIN:(status.sensor1?'R':'r'));
+				break;
+			case SENSOR_TYPE_SOIL:
+				lcd.write(status.sensor1_active?ICON_SOIL:(status.sensor1?'S':'s'));
+				break;
+			case SENSOR_TYPE_FLOW:
+				lcd.write(flowcount_rt>0?'F':'f');
+				break;
+			case SENSOR_TYPE_PSWITCH:
+				lcd.write(status.sensor1?'P':'p');
+				break;
+			default:
+				lcd.write(' ');
+				break;
 		}
 
-		lcd.setCursor(2, 2);
-		if(status.program_busy && !status.pause_state) {
-			//lcd.print(F("Curr: "));
-			lcd.print(read_current());
-			lcd.print(F(" mA      "));
-		} else {
-			lcd.clear(2, 2);
+		// write sensor 2 icon
+		lcd.setCursor(LCD_CURSOR_SENSOR2, 1);
+		switch(iopts[IOPT_SENSOR2_TYPE]) {
+			case SENSOR_TYPE_RAIN:
+				lcd.write(status.sensor2_active?ICON_RAIN:(status.sensor2?'R':'r'));
+				break;
+			case SENSOR_TYPE_SOIL:
+				lcd.write(status.sensor2_active?ICON_SOIL:(status.sensor2?'S':'s'));
+				break;
+				// sensor2 cannot be flow sensor
+			/*case SENSOR_TYPE_FLOW:
+				lcd.write('F');
+				break;*/
+			case SENSOR_TYPE_PSWITCH:
+				lcd.write(status.sensor2?'Q':'q');
+				break;
+			default:
+				lcd.write(' ');
+				break;
 		}
+
+		lcd.setCursor(LCD_CURSOR_NETWORK, 1);
+	#if defined(ESP8266)
+		if(useEth) {
+			lcd.write(eth.connected()?ICON_ETHER_CONNECTED:ICON_ETHER_DISCONNECTED);	// todo: need to detect ether status
+		}
+		else
+			lcd.write(WiFi.status()==WL_CONNECTED?ICON_WIFI_CONNECTED:ICON_WIFI_DISCONNECTED);
+	#else
+		lcd.write(status.network_fails>2?ICON_ETHER_DISCONNECTED:ICON_ETHER_CONNECTED);  // if network failure detection is more than 2, display disconnect icon
+	#endif
+
+	#if defined(ESP8266)
+
+		if(useEth || (get_wifi_mode()==WIFI_MODE_STA && WiFi.status()==WL_CONNECTED && WiFi.localIP())) {
+			lcd.setCursor(0, -1);
+			if(status.rain_delayed) {
+				lcd.print(F("<Rain Delay On> "));
+			} else if(status.pause_state) {
+				lcd.print(F("<Program Paused>"));
+			} else if(status.program_busy) {
+				lcd.print(F("<Running Zones> "));
+			} else {
+				lcd.print(F(" (System Idle)  "));
+			}
+
+			lcd.setCursor(2, 2);
+			if(status.program_busy && !status.pause_state) {
+				//lcd.print(F("Curr: "));
+				lcd.print(read_current());
+				lcd.print(F(" mA      "));
+			} else {
+				lcd.clear(2, 2);
+			}
+		}
+	#endif
+	#if defined(ESP8266)
+		lcd.display();
+		lcd.setAutoDisplay(true);
+	#endif
+	}
+
+#elif defined(OSPI) && defined(USE_SSD1306)
+	void OpenSprinkler::lcd_print_screen(char c) {
+	    // Clear display buffer
+	    LCD_CLEAR(lcd);
+
+	    // Station board header
+	    LCD_SET_CURSOR_LINE(lcd, 0, 1);
+	    if (status.display_board == 0) {
+		LCD_PRINT(lcd, "MC:");
+	    } else {
+		char buf[5];
+		snprintf(buf, sizeof(buf), "E%u:", status.display_board);
+		LCD_PRINT(lcd, buf);
+	    }
+
+	    // Disabled or display station bits
+	    LCD_SET_CURSOR_LINE(lcd, 0, 2);
+	    if (!status.enabled) {
+		LCD_PRINT(lcd, "-Disabled!-");
+	    } else {
+		unsigned char bitvalue = station_bits[status.display_board];
+		for (unsigned char s = 0; s < 8; ++s) {
+		    unsigned char sid = (status.display_board << 3) + (s + 1);
+		    char out = (bitvalue & 1) ? c : '_';
+		    if (sid == iopts[IOPT_MASTER_STATION])       out = (bitvalue & 1) ? c : 'M';
+		    else if (sid == iopts[IOPT_MASTER_STATION_2]) out = (bitvalue & 1) ? c : 'N';
+		    LCD_PRINT(lcd, out);
+		    bitvalue >>= 1;
+		}
+	    }
+
+	    // Push buffer to display
+	    LCD_DISPLAY(lcd);
 	}
 #endif
-#if defined(ESP8266)
-	lcd.display();
-	lcd.setAutoDisplay(true);
-#endif
-}
+
 
 /** print a version number */
 void OpenSprinkler::lcd_print_version(unsigned char v) {
