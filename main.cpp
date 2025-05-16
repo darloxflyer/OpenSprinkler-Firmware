@@ -1063,7 +1063,7 @@ void turn_on_station(unsigned char sid, ulong duration) {
 
 	if (os.set_station_bit(sid, 1, duration)) {
 		push_message(NOTIFY_STATION_ON, sid, duration);
-		#if defined(USESSD1306)
+		#if defined(USE_SSD1306)
 		  // line 3: which zone
 		  LCD_SET_CURSOR_LINE(lcd, 0, 2);
 		  LCD_PRINT(lcd, "Zone ");
@@ -1162,7 +1162,7 @@ void turn_off_station(unsigned char sid, time_os_t curr_time, unsigned char shif
 			// log station run
 			write_log(LOGDATA_STATION, curr_time); // LOG_TODO
 			push_message(NOTIFY_STATION_OFF, sid, pd.lastrun.duration);
-			#if defined(USESSD1306)
+			#if defined(USE_SSD1306)
 			  LCD_SET_CURSOR_LINE(lcd,0,2);
   			  LCD_PRINT(lcd,"None");           // no active zone
 			  LCD_SET_CURSOR_LINE(lcd,0,3);
@@ -1359,13 +1359,13 @@ void manual_start_program(unsigned char pid, unsigned char uwt) {
 	if ((pid>0)&&(pid<255)) {
 		pd.read(pid-1, &prog);
 		push_message(NOTIFY_PROGRAM_SCHED, pid-1, uwt?os.iopts[IOPT_WATER_PERCENTAGE]:100, "");
-		#if defined(USESSD1306)
+		#if defined(USE_SSD1306)
 		  LCD_CLEAR(lcd);
 		  LCD_SET_CURSOR_LINE(lcd,0,0);
 		  LCD_PRINT(lcd,prog.name);                            // line 1: program name
 		  LCD_SET_CURSOR_LINE(lcd,0,1);
 		  LCD_PRINT(lcd,"Step 1 of ");
-		  LCD_PRINT_NUMBER(lcd,pd.nstations);                  // or your own “total steps” count
+		  LCD_PRINT_NUMBER(lcd,pd.nqueue);                  // or your own “total steps” count
 		  LCD_DISPLAY(lcd);
 		#endif
 	}
