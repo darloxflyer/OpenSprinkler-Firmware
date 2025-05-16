@@ -2889,40 +2889,6 @@ void OpenSprinkler::lcd_print_mac(const unsigned char *mac) {
 	#endif
 	}
 
-#elif defined(OSPI) && defined(USE_SSD1306)
-	void OpenSprinkler::lcd_print_screen(char c) {
-	    // Clear display buffer
-	    LCD_CLEAR(lcd);
-
-	    // Station board header
-	    LCD_SET_CURSOR_LINE(lcd, 0, 1);
-	    if (status.display_board == 0) {
-		LCD_PRINT(lcd, "MC:");
-	    } else {
-		char buf[5];
-		snprintf(buf, sizeof(buf), "E%u:", status.display_board);
-		LCD_PRINT(lcd, buf);
-	    }
-
-	    // Disabled or display station bits
-	    LCD_SET_CURSOR_LINE(lcd, 0, 2);
-	    if (!status.enabled) {
-		LCD_PRINT(lcd, "-Disabled!-");
-	    } else {
-		unsigned char bitvalue = station_bits[status.display_board];
-		for (unsigned char s = 0; s < 8; ++s) {
-		    unsigned char sid = (status.display_board << 3) + (s + 1);
-		    char out = (bitvalue & 1) ? c : '_';
-		    if (sid == iopts[IOPT_MASTER_STATION])       out = (bitvalue & 1) ? c : 'M';
-		    else if (sid == iopts[IOPT_MASTER_STATION_2]) out = (bitvalue & 1) ? c : 'N';
-		    LCD_PRINT(lcd, out);
-		    bitvalue >>= 1;
-		}
-	    }
-
-	    // Push buffer to display
-	    LCD_DISPLAY(lcd);
-	}
 #endif
 
 
@@ -3024,6 +2990,43 @@ void OpenSprinkler::lcd_print_option(int i) {
 }
 
 #endif
+
+#if defined(OSPI) && defined(USE_SSD1306)
+void OpenSprinkler::lcd_print_screen(char c) {
+	// Clear display buffer
+	LCD_CLEAR(lcd);
+
+	// Station board header
+	LCD_SET_CURSOR_LINE(lcd, 0, 1);
+	if (status.display_board == 0) {
+		LCD_PRINT(lcd, "MC:");
+	}
+	else {
+		char buf[5];
+		snprintf(buf, sizeof(buf), "E%u:", status.display_board);
+		LCD_PRINT(lcd, buf);
+	}
+
+	// Disabled or display station bits
+	LCD_SET_CURSOR_LINE(lcd, 0, 2);
+	if (!status.enabled) {
+		LCD_PRINT(lcd, "-Disabled!-");
+	}
+	else {
+		unsigned char bitvalue = station_bits[status.display_board];
+		for (unsigned char s = 0; s < 8; ++s) {
+			unsigned char sid = (status.display_board << 3) + (s + 1);
+			char out = (bitvalue & 1) ? c : '_';
+			if (sid == iopts[IOPT_MASTER_STATION])       out = (bitvalue & 1) ? c : 'M';
+			else if (sid == iopts[IOPT_MASTER_STATION_2]) out = (bitvalue & 1) ? c : 'N';
+			LCD_PRINT(lcd, out);
+			bitvalue >>= 1;
+		}
+	}
+
+	// Push buffer to display
+	LCD_DISPLAY(lcd);
+}
 
 #if defined(ARDUINO) || defined(USE_GPIO_BUTTONS)
 /** Button functions */
