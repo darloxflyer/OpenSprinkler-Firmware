@@ -1065,17 +1065,18 @@ void turn_on_station(unsigned char sid, ulong duration) {
 		push_message(NOTIFY_STATION_ON, sid, duration);
 		#if defined(USESSD1306)
 		  // line 3: which zone
-		  LCD_SET_CURSOR_LINE(0,2);
-		  LCD_PRINT("Zone ");
-		  LCD_PRINT_NUMBER(sid+1);
+		  LCD_SET_CURSOR_LINE(lcd, 0, 2);
+		  LCD_PRINT(lcd, "Zone ");
+		  LCD_PRINT_NUMBER(lcd, sid+1);
 		  // line 4: time remaining (mm:ss)
-		  LCD_SET_CURSOR_LINE(0,3);
+		  LCD_SET_CURSOR_LINE(lcd, 0,3);
 		  {
 		    char buf[6];
 		    unsigned int m = duration/60, s = duration%60;
 		    sprintf(buf, "%02u:%02u", m, s);
-		    LCD_PRINT(buf);
+		    LCD_PRINT(lcd, buf);
 		  }
+		  LCD_DISPLAY(lcd);
 		#endif
 	}
 }
@@ -1162,10 +1163,11 @@ void turn_off_station(unsigned char sid, time_os_t curr_time, unsigned char shif
 			write_log(LOGDATA_STATION, curr_time); // LOG_TODO
 			push_message(NOTIFY_STATION_OFF, sid, pd.lastrun.duration);
 			#if defined(USESSD1306)
-			  LCD_SET_CURSOR_LINE(0,2);
-  			  LCD_PRINT("None");           // no active zone
-			  LCD_SET_CURSOR_LINE(0,3);
-			  LCD_PRINT("    ");           // clear timer
+			  LCD_SET_CURSOR_LINE(lcd,0,2);
+  			  LCD_PRINT(lcd,"None");           // no active zone
+			  LCD_SET_CURSOR_LINE(lcd,0,3);
+			  LCD_PRINT(lcd,"    ");           // clear timer
+			  LCD_DISPLAY(lcd);
 			#endif
 		}
 	}
@@ -1358,12 +1360,13 @@ void manual_start_program(unsigned char pid, unsigned char uwt) {
 		pd.read(pid-1, &prog);
 		push_message(NOTIFY_PROGRAM_SCHED, pid-1, uwt?os.iopts[IOPT_WATER_PERCENTAGE]:100, "");
 		#if defined(USESSD1306)
-		  LCD_CLEAR();
-		  LCD_SET_CURSOR_LINE(0,0);
-		  LCD_PRINT(prog.name);                            // line 1: program name
-		  LCD_SET_CURSOR_LINE(0,1);
-		  LCD_PRINT("Step 1 of ");
-		  LCD_PRINT_NUMBER(pd.nstations);                  // or your own “total steps” count
+		  LCD_CLEAR(lcd);
+		  LCD_SET_CURSOR_LINE(lcd,0,0);
+		  LCD_PRINT(lcd,prog.name);                            // line 1: program name
+		  LCD_SET_CURSOR_LINE(lcd,0,1);
+		  LCD_PRINT(lcd,"Step 1 of ");
+		  LCD_PRINT_NUMBER(lcd,pd.nstations);                  // or your own “total steps” count
+		  LCD_DISPLAY(lcd);
 		#endif
 	}
 	for(sid=0;sid<os.nstations;sid++) {

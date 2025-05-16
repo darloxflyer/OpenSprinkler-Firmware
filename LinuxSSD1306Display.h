@@ -57,11 +57,11 @@ private:
 
 extern LinuxSSD1306Display lcd;
 
-bool LCD_INIT(LinuxSSD1306Display lcd);
-void LCD_CLEAR(LinuxSSD1306Display lcd);
-void LCD_SET_CURSOR(LinuxSSD1306Display lcd, uint8_t col, uint8_t row);
-void LCD_SET_CURSOR_LINE(LinuxSSD1306Display lcd, uint8_t col, uint8_t line);
-void LCD_PRINT(LinuxSSD1306Display lcd, const char* s);
-void LCD_PRINT_NUMBER(LinuxSSD1306Display lcd, int n);
-void LCD_DISPLAY(LinuxSSD1306Display lcd);
-void LCD_DRAW_XBM(LinuxSSD1306Display lcd, uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *bitmap, bool invert);
+bool LCD_INIT(LinuxSSD1306Display &lcd);
+void LCD_CLEAR(LinuxSSD1306Display &lcd);
+void LCD_SET_CURSOR(LinuxSSD1306Display &lcd, uint8_t col, uint8_t row);
+void LCD_SET_CURSOR_LINE(LinuxSSD1306Display &lcd, uint8_t col, uint8_t line);
+void LCD_PRINT(LinuxSSD1306Display &lcd, const char* s);
+void LCD_PRINT_NUMBER(LinuxSSD1306Display &lcd, int n);
+void LCD_DISPLAY(LinuxSSD1306Display &lcd);
+void LCD_DRAW_XBM(LinuxSSD1306Display &lcd, uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *bitmap, bool invert);
