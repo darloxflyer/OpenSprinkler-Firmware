@@ -3019,7 +3019,9 @@ void OpenSprinkler::lcd_print_screen(char c) {
 			char out = (bitvalue & 1) ? c : '_';
 			if (sid == iopts[IOPT_MASTER_STATION])       out = (bitvalue & 1) ? c : 'M';
 			else if (sid == iopts[IOPT_MASTER_STATION_2]) out = (bitvalue & 1) ? c : 'N';
-			LCD_PRINT(lcd, out);
+			char buf[2] = { c, '\0' };
+			const char* output = buf;
+			LCD_PRINT(lcd, output);
 			bitvalue >>= 1;
 		}
 	}
