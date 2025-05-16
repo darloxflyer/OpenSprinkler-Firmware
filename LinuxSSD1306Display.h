@@ -3,8 +3,11 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <bcm2835.h>
 #include "SSD1306_OLED.hpp"
+
+#define OLEDwidth 128
+#define OLEDheight 64
+#define FULLSCREEN (OLEDwidth * (OLEDheight/8))
 
 class LinuxSSD1306Display {
 public:
@@ -30,21 +33,24 @@ public:
     /// Draw a monochrome XBM bitmap into the framebuffer
     void drawXbm(int16_t x, int16_t y,
                  int16_t w, int16_t h,
-                 const uint8_t* bitmap);
+                 const uint8_t* bitmap,
+                 bool invert);
 
     /// Move the text cursor to (x,y) in pixels
     void setCursor(int16_t x, int16_t y);
 
     /// Print a C-string at the current cursor
     size_t print(const char* text);
+    
 
 private:
     SSD1306    oled_;        ///< upstream driver
     uint16_t   speed_;       ///< I2C clock divider
     uint8_t    address_;     ///< I2C address
     bool       debug_;       ///< debug flag
+    bool       flipped_;     ///< Flip display 180-degrees
 
-    uint8_t*   buffer_;      ///< our framebuffer
-    size_t     bufferSize_;  ///< = width * (height/8)
+    uint8_t    buffer_[FULLSCREEN];      ///< our framebuffer
+    size_t     bufferSize_ = FULLSCREEN;  ///< = width * (height/8)
     uint8_t    width_, height_;
 };

@@ -42,7 +42,7 @@
   #define LCD_SET_CURSOR(x,y)    lcd.setCursor((x),(y))
   #define LCD_PRINT(str)         lcd.print((str))
   #define LCD_DISPLAY()          lcd.display()
-  #define LCD_DRAW_XBM(x,y,w,h,b) lcd.drawXbm((x),(y),(w),(h),(b))
+  #define LCD_DRAW_XBM(x,y,w,h,b,i) lcd.drawXbm((x),(y),(w),(h),(b),(i))
 #else
   // no-op stubs when SSD1306 isn’t enabled
   #define LCD_INIT()             (void)0
@@ -50,7 +50,7 @@
   #define LCD_SET_CURSOR(x,y)    (void)0
   #define LCD_PRINT(str)         (void)0
   #define LCD_DISPLAY()          (void)0
-  #define LCD_DRAW_XBM(x,y,w,h,b) (void)0
+  #define LCD_DRAW_XBM(x,y,w,h,b,i) (void)0
 #endif
 
 /** Declare static data members */
@@ -916,9 +916,30 @@ void OpenSprinkler::begin() {
 		fprintf(stderr, "[OSPI] OLED init failed\n");
 	} else {
 	        fprintf(stderr, "[OSPI] OLED initialized\n");
+		// 1) simple text test
+		LCD_CLEAR();
+		LCD_SET_CURSOR(0, 0);
+		fprintf(stderr, "[OSPI] OLED Text for 2 sec...\n");
+		LCD_PRINT("Hello, OpenSprinkler!");
+		LCD_DISPLAY();
+		sleep(2);                  // hold for 2s so you can see it
+
+		// 2) bitmap + label test
+		LCD_CLEAR();
+		// draw a 32×32 icon at (48,8)—adjust the name/size to match images.h
+		fprintf(stderr, "[OSPI] OLED Bitmap for 2 sec...\n");
+		LCD_DRAW_XBM(48, 8, 32, 32, reinterpret_cast<const uint8_t*>(_iconimage_wifi_connected), false);
+		// put a label underneath
+		LCD_SET_CURSOR(0, 48);
+		LCD_PRINT("Icon OK");
+		LCD_DISPLAY();
+		sleep(2);
+
+		// 3) back to blank screen
+		fprintf(stderr, "[OSPI] OLED Cleared\n");
 		LCD_CLEAR();
 		LCD_DISPLAY();
-	}
+        }
 #endif
 
 	hw_type = HW_TYPE_UNKNOWN;
