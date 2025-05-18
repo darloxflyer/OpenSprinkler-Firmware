@@ -21,6 +21,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
 #include "OpenSprinkler.h"
 #include "opensprinkler_server.h"
 #include "gpio.h"
@@ -2993,13 +2994,15 @@ void OpenSprinkler::lcd_print_option(int i) {
 
 #if defined(OSPI) && defined(USE_SSD1306)
 void OpenSprinkler::lcd_print_screen(char c) {
+	ProgramStruct prog;
+
 	// Clear display buffer
 	LCD_CLEAR(lcd);
 
 	// Station board header
 	LCD_SET_CURSOR_LINE(lcd, 0, 1);
 	if (status.display_board == 0) {
-		LCD_PRINT(lcd, "MC:");
+		LCD_PRINT(lcd, "Kilmer-Main Sprinklers");
 	}
 	else {
 		char buf[5];
@@ -3027,6 +3030,13 @@ void OpenSprinkler::lcd_print_screen(char c) {
 	}
 	LCD_SET_CURSOR_LINE(lcd, 0, 3);
 	LCD_PRINT(lcd, "12345678");
+
+	if (os.status.program_busy) {
+		pd.read(os.status.current_program, &prog);
+		LCD_SET_CURSOR_LINE(lcd, 0, 4);
+		LCD_PRINT(lcd, "Running: ");
+		LCD_PRINT(lcd, prog.name);
+	}
 
 	// Push buffer to display
 	LCD_DISPLAY(lcd);

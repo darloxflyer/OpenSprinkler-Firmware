@@ -195,6 +195,7 @@ struct ConStatus {
 	unsigned char sensor2_active:1;  // sensor2 active bit (when set, sensor2 is activated)
 	unsigned char req_mqtt_restart:1;// request mqtt restart
 	unsigned char pause_state:1;     // pause station runs
+	unsigned char current_program:1; // Current program pid
 };
 
 /** OTF configuration */
