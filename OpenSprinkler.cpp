@@ -2999,19 +2999,8 @@ void OpenSprinkler::lcd_print_screen(char c) {
 	// Clear display buffer
 	LCD_CLEAR(lcd);
 
-	// Station board header
-	LCD_SET_CURSOR_LINE(lcd, 0, 1);
-	if (status.display_board == 0) {
-		LCD_PRINT(lcd, "Kilmer-Main");
-	}
-	else {
-		char buf[5];
-		snprintf(buf, sizeof(buf), "E%u:", status.display_board);
-		LCD_PRINT(lcd, buf);
-	}
-
 	// Disabled or display station bits
-	LCD_SET_CURSOR_LINE(lcd, 0, 2);
+	LCD_SET_CURSOR_LINE(lcd, 0, 1);
 	if (!status.enabled) {
 		LCD_PRINT(lcd, "-Disabled!-");
 	}
@@ -3028,14 +3017,17 @@ void OpenSprinkler::lcd_print_screen(char c) {
 			bitvalue >>= 1;
 		}
 	}
-	LCD_SET_CURSOR_LINE(lcd, 0, 3);
+	LCD_SET_CURSOR_LINE(lcd, 0, 2);
 	LCD_PRINT(lcd, "12345678");
 
 	if (os.status.program_busy) {
 		pd.read(os.status.current_program, &prog);
-		LCD_SET_CURSOR_LINE(lcd, 0, 4);
+		LCD_SET_CURSOR_LINE(lcd, 0, 3);
 		LCD_PRINT(lcd, "Running: ");
 		LCD_PRINT(lcd, prog.name);
+		LCD_SET_CURSOR_LINE(lcd, 0, 4);
+		LCD_PRINT(lcd, "Remaining: ");
+		LCD_PRINT(lcd, os.status.current_program_remaining);
 	}
 
 	// Push buffer to display

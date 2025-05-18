@@ -1274,6 +1274,30 @@ void handle_master_adjustments(time_os_t curr_time, RuntimeQueueStruct *q) {
  * This function loops through the queue
  * and schedules the start time of each station
  */
+const char* format_remaining_time(time_os_t curr_time, time_os_t start_tick, uint16_t duration_sec) {
+	// compute elapsed seconds
+	uint16_t elapsed_ticks = (curr_time >= start_tick)
+		? (curr_time - start_tick)
+		: 0;   // guard against wrap (if your RTOS wraps ticks)
+	uint16_t elapsed_sec = elapsed_ticks;
+
+	// 3) remaining, clamp at zero
+	uint16_t rem = (elapsed_sec >= duration_sec)
+		? 0
+		: (duration_sec - elapsed_sec);
+
+	// 4) split into minutes + seconds
+	uint16_t minutes = rem / 60;
+	uint16_t seconds = rem % 60;
+
+	// 5) format into static buffer "MM:SS"
+	//    static so the pointer remains valid after return.
+	static char buf[6];  // "mm:ss\0"
+	snprintf(buf, sizeof(buf), "%02u:%02u", minutes, seconds);
+
+	return buf;
+}
+
 void schedule_all_stations(time_os_t curr_time) {
 	ulong con_start_time = curr_time + 1;   // concurrent start time
 	// if the queue is paused, make sure the start time is after the scheduled pause ends
@@ -1317,7 +1341,9 @@ void schedule_all_stations(time_os_t curr_time) {
 		if (!os.status.program_busy) {
 			os.status.program_busy = 1;  // set program busy bit
 			os.status.current_program = q->pid; // set program pid
-			fprintf(stderr, "Program Running.  PID '%hhu', SID '%hhu', GID '%hhu'.\n", q->pid, q->sid, gid);
+			os.status.current_program_remaining = format_remaining_time(curr_time, q->st, q->dur);
+			fprintf(stderr, "[PROGRAM] Program Running.  PID '%hhu', SID '%hhu', GID '%hhu'.\n", q->pid, q->sid, gid);
+			fprintf(stderr, "[PROGRAM] Remaining Time: %s.\n", os.status.current_program_remaining);
 			// start flow count
 			if(os.iopts[IOPT_SENSOR1_TYPE] == SENSOR_TYPE_FLOW) {  // if flow sensor is connected
 				os.flowcount_log_start = flow_count;
@@ -1366,15 +1392,6 @@ void manual_start_program(unsigned char pid, unsigned char uwt) {
 	if ((pid>0)&&(pid<255)) {
 		pd.read(pid-1, &prog);
 		push_message(NOTIFY_PROGRAM_SCHED, pid-1, uwt?os.iopts[IOPT_WATER_PERCENTAGE]:100, "");
-		#if defined(USE_SSD1306)
-		  LCD_CLEAR(lcd);
-		  LCD_SET_CURSOR_LINE(lcd,0,0);
-		  LCD_PRINT(lcd,prog.name);                            // line 1: program name
-		  LCD_SET_CURSOR_LINE(lcd,0,1);
-		  LCD_PRINT(lcd,"Step 1 of ");
-		  LCD_PRINT_NUMBER(lcd,pd.nqueue);                  // or your own “total steps” count
-		  LCD_DISPLAY(lcd);
-		#endif
 	}
 	for(sid=0;sid<os.nstations;sid++) {
 		bid=sid>>3;
