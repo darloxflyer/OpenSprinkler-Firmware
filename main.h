@@ -36,4 +36,8 @@ void delete_log(char *name);
 void write_log(unsigned char type, time_os_t curr_time);
 void make_logfile_name(char *name);
 
+#if defined(USE_SSD1306)
+const char* format_remaining_time(time_os_t curr_time, time_os_t deque_time);
+#endif
+
 #endif // _MAIN_H

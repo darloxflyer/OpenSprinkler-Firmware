@@ -934,11 +934,12 @@ void do_loop()
 
 #elif defined(OSPI) && defined(USE_SSD1306)
 		// process LCD display for OSPI with SSD1306
+		const char* time_remaining;
 		if (os.status.program_busy) {
-			const char* time_remaining = format_remaining_time(curr_time, os.status.current_program_end_time);
+			time_remaining = format_remaining_time(curr_time, os.status.current_program_end_time);
 		}
 		else {
-			const char* time_remaining = "";
+			time_remaining = "";
 		}
 		os.lcd_print_screen(ui_anim_chars[(unsigned long)curr_time % 3], time_remaining);
 #endif
