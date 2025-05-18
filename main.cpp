@@ -1341,14 +1341,16 @@ void schedule_all_stations(time_os_t curr_time) {
 		if (!os.status.program_busy) {
 			os.status.program_busy = 1;  // set program busy bit
 			os.status.current_program = q->pid; // set program pid
-			os.status.current_program_remaining = format_remaining_time(curr_time, q->st, q->dur);
 			fprintf(stderr, "[PROGRAM] Program Running.  PID '%hhu', SID '%hhu', GID '%hhu'.\n", q->pid, q->sid, gid);
-			fprintf(stderr, "[PROGRAM] Remaining Time: %s.\n", os.status.current_program_remaining);
 			// start flow count
 			if(os.iopts[IOPT_SENSOR1_TYPE] == SENSOR_TYPE_FLOW) {  // if flow sensor is connected
 				os.flowcount_log_start = flow_count;
 				os.sensor1_active_lasttime = curr_time;
 			}
+		}
+		else {
+			os.status.current_program_remaining = format_remaining_time(curr_time, q->st, q->dur);
+			fprintf(stderr, "[PROGRAM] Remaining Time: %s.\n", os.status.current_program_remaining);
 		}
 	}
 }

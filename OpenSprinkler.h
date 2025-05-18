@@ -201,6 +201,7 @@ struct ConStatus {
 	unsigned char req_mqtt_restart:1;// request mqtt restart
 	unsigned char pause_state:1;     // pause station runs
 	unsigned char current_program:1; // Current program pid
+	
 	const char* current_program_remaining; // Current program remaining time in mm:ss format.
 };
 

@@ -3025,7 +3025,7 @@ void OpenSprinkler::lcd_print_screen(char c) {
 		LCD_SET_CURSOR_LINE(lcd, 0, 3);
 		LCD_PRINT(lcd, "Running: ");
 		LCD_PRINT(lcd, prog.name);
-		LCD_SET_CURSOR_LINE(lcd, 0, 4);
+		LCD_SET_CURSOR_LINE(lcd, 0, 5);
 		LCD_PRINT(lcd, "Remaining: ");
 		LCD_PRINT(lcd, os.status.current_program_remaining);
 	}
