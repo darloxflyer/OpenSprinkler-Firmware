@@ -861,6 +861,8 @@ void do_loop()
 				pd.reset_runtime(); // reset runtime
 				os.status.program_busy = 0; // reset program busy bit
 				os.status.current_program = 0; // reset running program bit
+				os.status.current_program_started = 0;
+				os.status.current_program_end_time = 0;
 				pd.clear_pause(); // TODO: what if pause hasn't expired and a new program is scheduled to run?
 
 				// log flow sensor reading if flow sensor is used
@@ -932,7 +934,13 @@ void do_loop()
 
 #elif defined(OSPI) && defined(USE_SSD1306)
 		// process LCD display for OSPI with SSD1306
-		os.lcd_print_screen(ui_anim_chars[(unsigned long)curr_time % 3]);
+		if (os.status.program_busy) {
+			const char* time_remaining = format_remaining_time(curr_time, os.status.current_program_end_time);
+		}
+		else {
+			const char* time_remaining = "";
+		}
+		os.lcd_print_screen(ui_anim_chars[(unsigned long)curr_time % 3], time_remaining);
 #endif
 
 		// handle reboot request
@@ -1274,24 +1282,17 @@ void handle_master_adjustments(time_os_t curr_time, RuntimeQueueStruct *q) {
  * This function loops through the queue
  * and schedules the start time of each station
  */
-const char* format_remaining_time(time_os_t curr_time, time_os_t start_tick, uint16_t duration_sec) {
-	// compute elapsed seconds
-	uint16_t elapsed_ticks = (curr_time >= start_tick)
-		? (curr_time - start_tick)
-		: 0;   // guard against wrap (if your RTOS wraps ticks)
-	uint16_t elapsed_sec = elapsed_ticks;
+const char* format_remaining_time(time_os_t curr_time, time_os_t deque_time) {
+	uint16_t rem = (deque_time >= curr_time)
+		? (deque_time - curr_time)
+		: 0;
 
-	// 3) remaining, clamp at zero
-	uint16_t rem = (elapsed_sec >= duration_sec)
-		? 0
-		: (duration_sec - elapsed_sec);
-
-	// 4) split into minutes + seconds
+	// split into minutes + seconds
 	uint16_t minutes = rem / 60;
 	uint16_t seconds = rem % 60;
 
-	// 5) format into static buffer "MM:SS"
-	//    static so the pointer remains valid after return.
+	// format into static buffer "MM:SS"
+	// static so the pointer remains valid after return.
 	static char buf[6];  // "mm:ss\0"
 	snprintf(buf, sizeof(buf), "%02u:%02u", minutes, seconds);
 
@@ -1341,16 +1342,14 @@ void schedule_all_stations(time_os_t curr_time) {
 		if (!os.status.program_busy) {
 			os.status.program_busy = 1;  // set program busy bit
 			os.status.current_program = q->pid; // set program pid
+			os.status.current_program_started = curr_time;
+			os.status.current_program_end_time = q->deque_time;
 			fprintf(stderr, "[PROGRAM] Program Running.  PID '%hhu', SID '%hhu', GID '%hhu'.\n", q->pid, q->sid, gid);
 			// start flow count
 			if(os.iopts[IOPT_SENSOR1_TYPE] == SENSOR_TYPE_FLOW) {  // if flow sensor is connected
 				os.flowcount_log_start = flow_count;
 				os.sensor1_active_lasttime = curr_time;
 			}
-		}
-		else {
-			os.status.current_program_remaining = format_remaining_time(curr_time, q->st, q->dur);
-			fprintf(stderr, "[PROGRAM] Remaining Time: %s.\n", os.status.current_program_remaining);
 		}
 	}
 }

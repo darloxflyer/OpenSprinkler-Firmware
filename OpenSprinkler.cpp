@@ -2993,7 +2993,7 @@ void OpenSprinkler::lcd_print_option(int i) {
 #endif
 
 #if defined(OSPI) && defined(USE_SSD1306)
-void OpenSprinkler::lcd_print_screen(char c) {
+void OpenSprinkler::lcd_print_screen(char c, const char* time_remaining) {
 	ProgramStruct prog;
 
 	// Clear display buffer
@@ -3025,9 +3025,11 @@ void OpenSprinkler::lcd_print_screen(char c) {
 		LCD_SET_CURSOR_LINE(lcd, 0, 3);
 		LCD_PRINT(lcd, "Running: ");
 		LCD_PRINT(lcd, prog.name);
-		LCD_SET_CURSOR_LINE(lcd, 0, 5);
-		LCD_PRINT(lcd, "Remaining: ");
-		LCD_PRINT(lcd, os.status.current_program_remaining);
+		if (time_remaining) {
+			LCD_SET_CURSOR_LINE(lcd, 0, 5);
+			LCD_PRINT(lcd, "Remaining: ");
+			LCD_PRINT(lcd, time_remaining);
+		}
 	}
 
 	// Push buffer to display

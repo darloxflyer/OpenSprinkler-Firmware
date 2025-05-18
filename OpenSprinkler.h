@@ -201,8 +201,8 @@ struct ConStatus {
 	unsigned char req_mqtt_restart:1;// request mqtt restart
 	unsigned char pause_state:1;     // pause station runs
 	unsigned char current_program:1; // Current program pid
-	
-	const char* current_program_remaining; // Current program remaining time in mm:ss format.
+	time_os_t current_program_started; // Current program start time
+	time_os_t current_program_end_time; // Current program end time
 };
 
 /** OTF configuration */
@@ -415,7 +415,7 @@ public:
 #endif
 
 #if defined(OSPI) && defined(USE_SSD1306)
-	static void lcd_print_screen(char c);  // print station bits of the board selected by display_board
+	static void lcd_print_screen(char c, const char* time_remaining);  // print station bits of the board selected by display_board
 #endif
 
 #if defined(ARDUINO) || defined(USE_GPIO_BUTTONS) // Button functions for Arduino
