@@ -3002,7 +3002,7 @@ void OpenSprinkler::lcd_print_screen(char c) {
 	// Station board header
 	LCD_SET_CURSOR_LINE(lcd, 0, 1);
 	if (status.display_board == 0) {
-		LCD_PRINT(lcd, "Kilmer-Main Sprinklers");
+		LCD_PRINT(lcd, "Kilmer-Main");
 	}
 	else {
 		char buf[5];
