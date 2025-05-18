@@ -1317,6 +1317,7 @@ void schedule_all_stations(time_os_t curr_time) {
 		if (!os.status.program_busy) {
 			os.status.program_busy = 1;  // set program busy bit
 			os.status.current_program = q->pid; // set program pid
+			fprintf(stdout, (char*)F("Program Running.  PID '%s', SID '%s', GID '%s'.\n"), q->pid, q->sid, gid);
 			// start flow count
 			if(os.iopts[IOPT_SENSOR1_TYPE] == SENSOR_TYPE_FLOW) {  // if flow sensor is connected
 				os.flowcount_log_start = flow_count;
