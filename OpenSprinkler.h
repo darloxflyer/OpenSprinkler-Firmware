@@ -32,6 +32,11 @@
 #include "images.h"
 #include "mqtt.h"
 
+#if defined(OSPI) && defined(USE_SSD1306)
+        #include "LinuxSSD1306Display.h"
+#endif
+
+
 #if defined(ARDUINO) // headers for Arduino
 	#include <Arduino.h>
 	#include <Wire.h>
