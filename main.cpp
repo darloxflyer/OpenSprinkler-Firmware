@@ -22,6 +22,7 @@
  */
 
 #include <limits.h>
+#include <stdio.h>
 
 #include "types.h"
 #include "OpenSprinkler.h"
@@ -859,6 +860,7 @@ void do_loop()
 				os.apply_all_station_bits();
 				pd.reset_runtime(); // reset runtime
 				os.status.program_busy = 0; // reset program busy bit
+				os.status.current_program = 0; // reset running program bit
 				pd.clear_pause(); // TODO: what if pause hasn't expired and a new program is scheduled to run?
 
 				// log flow sensor reading if flow sensor is used
@@ -1314,6 +1316,8 @@ void schedule_all_stations(time_os_t curr_time) {
 
 		if (!os.status.program_busy) {
 			os.status.program_busy = 1;  // set program busy bit
+			os.status.current_program = q->pid; // set program pid
+			fprintf(stdout, (char*)F("Program Running.  PID '%s', SID '%s', GID '%s'.\n"), q->pid, q->sid, gid);
 			// start flow count
 			if(os.iopts[IOPT_SENSOR1_TYPE] == SENSOR_TYPE_FLOW) {  // if flow sensor is connected
 				os.flowcount_log_start = flow_count;
